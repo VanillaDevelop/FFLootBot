@@ -3,11 +3,17 @@ import discord.types.components
 from discord.ext import commands
 from discord.ui import Button, View
 
+from Bot.TeamManager import TeamManager
+
+COMMAND_PREFIX = '!'
+
 
 class DiscordBot:
-    def __init__(self, token):
+    def __init__(self, token: str):
         self.token = token
-        self.client = commands.Bot(command_prefix='!')
+        self.client = commands.Bot(command_prefix=COMMAND_PREFIX)
+        self.team_manager = TeamManager()
+        self.team_leaders = {}
 
         @self.client.event
         async def on_ready():
@@ -19,13 +25,15 @@ class DiscordBot:
                                                                     "distribution during progression raiding and "
                                                                     "gearing. ", color=0x00ff00)
             embed.add_field(name="Creating a team", value="You may have one active team at any given time. "
-                                                          "To start the flow, DM me with **!create**. You will be given"
+                                                          f"To start the flow, DM me with **{COMMAND_PREFIX}"
+                                                          "create [name]**. You will be given"
                                                           " an access code through which your team members can join "
                                                           "the team. As the team owner, you are responsible for "
                                                           "supplying logs concerning the loot and specifying loot "
                                                           "distribution settings.", inline=False)
             embed.add_field(name="Joining a team", value="If you are given an access code by the team owner, you "
-                                                         "may join the team by DMing me with **!join [code]**. You will"
+                                                         f"may join the team by DMing me with **{COMMAND_PREFIX}"
+                                                         "join [code]**. You will"
                                                          " then receive further instructions on how to specify your BiS"
                                                          " set. As a team member, you are responsible for reporting "
                                                          "on item purchases, and providing the correct BiS "
@@ -39,10 +47,21 @@ class DiscordBot:
             await ctx.send(embed=embed)
 
         @self.client.command()
-        async def create(ctx):
+        async def create(ctx, name: str):
             if not isinstance(ctx.channel, discord.channel.DMChannel):
                 await ctx.send("This command can only be used in DMs.")
                 return
+
+            if ctx.author.id in self.team_leaders:
+                await ctx.send("You already have an active team.")
+                return
+
+            uuid = self.team_manager.create_team(ctx.author.id, name)
+            self.team_leaders[ctx.author.id] = uuid
+
+            for (embed, view) in zip(self.__build_team_control_embeds__(name, uuid),
+                                     self.__build_team_control_views__(name, uuid)):
+                await ctx.send(embed=embed, view=view)
 
         @self.client.command()
         async def ping(ctx):
@@ -55,3 +74,28 @@ class DiscordBot:
 
     def __handle_on_ready__(self):
         print(f'{self.client.user} ready!')
+
+    def __build_team_control_embeds__(self, name: str, uuid: str):
+        embeds = []
+        embed = discord.Embed(title=f"Team {name}", description=f"This is the control panel for team {name}.")
+        embed.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with "
+                                                            f"**{COMMAND_PREFIX}join {uuid}**.", inline=False)
+        embeds.append(embed)
+
+        embed = discord.Embed()
+        embed.add_field(name="Loot Distribution", value="Select below who should get priority for loot drops.",
+                        inline=False)
+        embeds.append(embed)
+
+        return embeds
+
+    def __build_team_control_views__(self, name: str, uuid: str):
+        views = [None]
+
+        view = View()
+        view.add_item(Button(label="Priority: DPS", style=discord.ButtonStyle.primary))
+        view.add_item(Button(label="Priority: Equal Loot", style=discord.ButtonStyle.primary))
+        view.add_item(Button(label="Priority: None", style=discord.ButtonStyle.primary))
+        views.append(view)
+
+        return views

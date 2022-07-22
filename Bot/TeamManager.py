@@ -1,12 +1,13 @@
+from Bot.Team import Team
+import uuid
+
+
 class TeamManager:
     def __init__(self):
         self.teams = {}
+        self.team_member_index = {}
 
-    def has_team(self, uid):
-        return uid in self.teams
-
-    def create_team(self, uid):
-        if self.has_team(uid):
-            return False
-        self.teams[uid] = Team()
-        return True
+    def create_team(self, uid: int, name: str):
+        team_id = uuid.uuid4().hex
+        self.teams[team_id] = Team(uid, name)
+        return team_id
