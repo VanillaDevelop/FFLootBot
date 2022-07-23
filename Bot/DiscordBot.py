@@ -3,6 +3,7 @@ import discord.types.components
 from discord.ext import commands
 from discord.ui import Button, View
 
+from Bot.Team import Team, LootPriority
 from Bot.TeamManager import TeamManager
 
 COMMAND_PREFIX = '!'
@@ -14,6 +15,7 @@ class DiscordBot:
         self.client = commands.Bot(command_prefix=COMMAND_PREFIX)
         self.team_manager = TeamManager()
         self.team_leaders = {}
+        self.message_map = {}
 
         @self.client.event
         async def on_ready():
@@ -59,15 +61,17 @@ class DiscordBot:
             uuid = self.team_manager.create_team(ctx.author.id, name)
             self.team_leaders[ctx.author.id] = uuid
 
-            for (embed, view) in zip(self.__build_team_control_embeds__(name, uuid),
-                                     self.__build_team_control_views__(name, uuid)):
-                await ctx.send(embed=embed, view=view)
+            for (embed, view) in zip(self.__build_team_control_embeds__(self.team_manager.teams[uuid], uuid),
+                                     self.__build_team_control_views__(self.team_manager.teams[uuid], uuid)):
+                message = await ctx.send(embed=embed, view=view)
+                if view is not None:
+                    self.message_map[message.id] = uuid
 
         @self.client.command()
         async def ping(ctx):
             button = Button(label="Click me!", style=discord.ButtonStyle.primary)
             view = View()
-            view.add_item(button);
+            view.add_item(button)
             await ctx.send(f'Pong! {round(self.client.latency * 1000)}ms', view=view)
 
         self.client.run(self.token)
@@ -75,27 +79,59 @@ class DiscordBot:
     def __handle_on_ready__(self):
         print(f'{self.client.user} ready!')
 
-    def __build_team_control_embeds__(self, name: str, uuid: str):
+    async def __handle_loot_priority_click__(self, ctx):
+        self.team_manager.teams[self.message_map[ctx.message.id]].loot_priority = LootPriority.DPS
+        await ctx.response.edit_message(view=self.__build_loot_priority_view(self.team_manager.teams[self.message_map[ctx.message.id]], self.message_map[ctx.message.id]))
+
+    def __build_team_control_embeds__(self, team: Team, uuid: str):
         embeds = []
-        embed = discord.Embed(title=f"Team {name}", description=f"This is the control panel for team {name}.")
+        embed = discord.Embed(title=f"Team {team.name}", description=f"This is the control panel for team {team.name}.")
         embed.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with "
                                                             f"**{COMMAND_PREFIX}join {uuid}**.", inline=False)
         embeds.append(embed)
 
         embed = discord.Embed()
-        embed.add_field(name="Loot Distribution", value="Select below who should get priority for loot drops.",
-                        inline=False)
+        embed.add_field(name="Current Team Status",
+                        value=f"Team members: {len(team.members) + 1}")
         embeds.append(embed)
 
+        embed = discord.Embed()
+        embed.add_field(name="Loot Distribution", value="Select below who should get priority for loot drops."
+                                                        "\n**DPS**\n"
+                                                        "Loot will be distributed according to the biggest DPS "
+                                                        "improvement. This means loot will go exclusively to DPS "
+                                                        "(unless all DPS already possess a similar or better item)"
+                                                        " and large item upgrades will be prioritized."
+                                                        "\n**Equal Loot**\n"
+                                                        "Loot will be distributed in such "
+                                                        "a way that the power increase of all players is roughly "
+                                                        "equal. Players who have less loot will receive priority "
+                                                        "on drops which benefit them."
+                                                        "\n**None**\n"
+                                                        "No loot priority will be provided, but the bot will "
+                                                        "show the potential upgrade for every player.",
+                        inline=False)
+        embeds.append(embed)
         return embeds
 
-    def __build_team_control_views__(self, name: str, uuid: str):
-        views = [None]
-
-        view = View()
-        view.add_item(Button(label="Priority: DPS", style=discord.ButtonStyle.primary))
-        view.add_item(Button(label="Priority: Equal Loot", style=discord.ButtonStyle.primary))
-        view.add_item(Button(label="Priority: None", style=discord.ButtonStyle.primary))
-        views.append(view)
-
+    def __build_team_control_views__(self, team: Team, uuid: str):
+        views = [None, None, self.__build_loot_priority_view(team, uuid)]
         return views
+
+    def __build_loot_priority_view(self, team: Team, uuid: str):
+        view = View()
+        btn_dps = Button(label="Priority: DPS",
+                         style=discord.ButtonStyle.red if team.loot_priority != LootPriority.DPS else discord.ButtonStyle.green)
+        btn_dps.callback = self.__handle_loot_priority_click__
+        view.add_item(btn_dps)
+
+        btn_equal = Button(label="Priority: Equal Loot",
+                           style=discord.ButtonStyle.red if team.loot_priority != LootPriority.EQUAL else discord.ButtonStyle.green)
+        btn_equal.callback = self.__handle_loot_priority_click__
+        view.add_item(btn_equal)
+
+        btn_none = Button(label="Priority: None",
+                          style=discord.ButtonStyle.red if team.loot_priority != LootPriority.NONE else discord.ButtonStyle.green)
+        btn_none.callback = self.__handle_loot_priority_click__
+        view.add_item(btn_none)
+        return view
