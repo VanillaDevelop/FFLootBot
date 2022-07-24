@@ -59,21 +59,15 @@ class DiscordBot:
                 await ctx.send("You already have an active team.")
                 return
 
-            uuid = self.team_manager.create_team(ctx.author.id, name)
+            uuid = self.team_manager.create_team(name)
             self.team_leaders[ctx.author.id] = uuid
+            self.team_manager.teams[uuid].add_member(ctx.author.id)
 
             for (embed, view) in zip(self.__build_team_control_embeds__(self.team_manager.teams[uuid], uuid),
                                      self.__build_team_control_views__(self.team_manager.teams[uuid], uuid)):
                 message = await ctx.send(embed=embed, view=view)
                 if view is not None:
                     self.message_map[message.id] = uuid
-
-        @self.client.command()
-        async def ping(ctx):
-            button = Button(label="Click me!", style=discord.ButtonStyle.primary)
-            view = View()
-            view.add_item(button)
-            await ctx.send(f'Pong! {round(self.client.latency * 1000)}ms', view=view)
 
         self.client.run(self.token)
 
@@ -84,6 +78,10 @@ class DiscordBot:
         self.team_manager.teams[self.message_map[ctx.message.id]].loot_priority = priority
         await ctx.response.edit_message(view=self.__build_loot_priority_view(self.team_manager.teams[self.message_map[ctx.message.id]], self.message_map[ctx.message.id]))
 
+    def __build_team_member_embeds__(self, team: Team, player: Player):
+        embeds = [None]
+        return embeds
+
     def __build_team_control_embeds__(self, team: Team, uuid: str):
         embeds = []
         embed = discord.Embed(title=f"Team {team.name}", description=f"This is the control panel for team {team.name}.")
@@ -93,7 +91,7 @@ class DiscordBot:
 
         embed = discord.Embed()
         embed.add_field(name="Current Team Status",
-                        value=f"Team members: {len(team.members) + 1}")
+                        value=f"Team members: {len(team.members)}")
         embeds.append(embed)
 
         embed = discord.Embed()

@@ -1,5 +1,7 @@
 from enum import Enum
 
+from Bot.Player import Player
+
 
 class LootPriority(Enum):
     DPS = 1
@@ -8,14 +10,10 @@ class LootPriority(Enum):
 
 
 class Team:
-    def __init__(self, leader_id: int, name: str):
-        self.members = []
-        self.leader = leader_id
+    def __init__(self, name: str):
+        self.members = {}
         self.name = name
         self.loot_priority = LootPriority.NONE
 
     def add_member(self, member_id: int):
-        self.members.append(member_id)
-
-    def set_loot_priority(self, priority: LootPriority):
-        self.loot_priority = priority
+        self.members[member_id] = Player()

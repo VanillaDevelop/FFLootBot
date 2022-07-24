@@ -7,12 +7,14 @@ class Role(Enum):
     HEAL = 3
 
 
+class RaidUpgrade(Enum):
+    NO = 1,
+    STATS = 2,
+    SUBSTATS_MINOR = 3,
+    SUBSTATS_MAJOR = 4
+
+
 class Player:
-    def __init__(self, uid):
+    def __init__(self):
         self.role = None
-        self.uid = uid
-
-    def set_role(self, role: Role):
-        self.role = role
-
-
+        self.gear_upgrades = [RaidUpgrade.NO] * 11

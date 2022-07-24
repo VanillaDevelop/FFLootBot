@@ -7,7 +7,7 @@ class TeamManager:
         self.teams = {}
         self.team_member_index = {}
 
-    def create_team(self, uid: int, name: str):
+    def create_team(self, name: str):
         team_id = uuid.uuid4().hex
-        self.teams[team_id] = Team(uid, name)
+        self.teams[team_id] = Team(name)
         return team_id
