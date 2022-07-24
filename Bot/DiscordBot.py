@@ -3,7 +3,7 @@ import discord.types.components
 from discord.ext import commands
 from discord.ui import Button, View
 
-from Bot.Player import Player
+from Bot.Player import Player, Role
 from Bot.Team import Team, LootPriority
 from Bot.TeamManager import TeamManager
 
@@ -69,6 +69,12 @@ class DiscordBot:
                 if view is not None:
                     self.message_map[message.id] = uuid
 
+            for (embed, view) in zip(self.__build_team_member_embeds__(self.team_manager.teams[uuid], self.team_manager.teams[uuid].members[ctx.author.id]),
+                                     self.__build_team_member_views__(self.team_manager.teams[uuid], self.team_manager.teams[uuid].members[ctx.author.id])):
+                message = await ctx.send(embed=embed, view=view)
+                if view is not None:
+                    self.message_map[message.id] = uuid
+
         self.client.run(self.token)
 
     def __handle_on_ready__(self):
@@ -76,22 +82,59 @@ class DiscordBot:
 
     async def __handle_loot_priority_click__(self, ctx, priority: LootPriority):
         self.team_manager.teams[self.message_map[ctx.message.id]].loot_priority = priority
-        await ctx.response.edit_message(view=self.__build_loot_priority_view(self.team_manager.teams[self.message_map[ctx.message.id]], self.message_map[ctx.message.id]))
+        await ctx.response.edit_message(view=self.__build_loot_priority_view__(self.team_manager.teams[self.message_map[ctx.message.id]], self.message_map[ctx.message.id]))
+
+    async def __handle_role_click__(self, ctx, role: Role):
+        self.team_manager.teams[self.message_map[ctx.message.id]].members[ctx.message.id].role = role
+        await ctx.response.edit_message(view=self.__build_role_view(self.team_manager.teams[self.message_map[ctx.message.id]], self.message_map[ctx.message.id]))
 
     def __build_team_member_embeds__(self, team: Team, player: Player):
-        embeds = [None]
+        embeds = []
+        embed = discord.Embed(title=f"Team {team.name}", description=f"This is the information panel for team {team.name}.")
+        embed.add_field(name="Current Team Status",
+                        value=f"Team members: {len(team.members)}")
+        embeds.append(embed)
+
+        embed = discord.Embed()
+        embed.add_field(name="Role", value="Please correctly identify your in-game role below. "
+                                           "This will be used to properly distribute loot.",
+                        inline=False)
+        embeds.append(embed)
+
+        embed = discord.Embed()
+        embed.add_field(name="Best in Slot", value="To change your Best in Slot selection, "
+                                                   "click the button below.",
+                        inline=False)
+        embeds.append(embed)
         return embeds
+
+    def __build_team_member_views__(self, team: Team, player: Player):
+        views = [None, self.__build_role_view(team, player), None]
+        return views
+
+    def __build_role_view(self, team: Team, player: Player):
+        view = View()
+        btn_tank = Button(label="Tank",
+                         style=discord.ButtonStyle.red if player.role != Role.TANK else discord.ButtonStyle.green)
+        btn_tank.callback = lambda ctx: self.__handle_role_click__(ctx=ctx, role=Role.Tank)
+        view.add_item(btn_tank)
+
+        btn_heal = Button(label="Healer",
+                         style=discord.ButtonStyle.red if player.role != Role.HEAL else discord.ButtonStyle.green)
+        btn_heal.callback = lambda ctx: self.__handle_role_click__(ctx=ctx, role=Role.HEAL)
+        view.add_item(btn_heal)
+
+        btn_dps = Button(label="DPS",
+                         style=discord.ButtonStyle.red if player.role != Role.DPS else discord.ButtonStyle.green)
+        btn_dps.callback = lambda ctx: self.__handle_role_click__(ctx=ctx, role=Role.DPS)
+        view.add_item(btn_dps)
+        return view
 
     def __build_team_control_embeds__(self, team: Team, uuid: str):
         embeds = []
         embed = discord.Embed(title=f"Team {team.name}", description=f"This is the control panel for team {team.name}.")
         embed.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with "
                                                             f"**{COMMAND_PREFIX}join {uuid}**.", inline=False)
-        embeds.append(embed)
-
-        embed = discord.Embed()
-        embed.add_field(name="Current Team Status",
-                        value=f"Team members: {len(team.members)}")
         embeds.append(embed)
 
         embed = discord.Embed()
@@ -114,10 +157,10 @@ class DiscordBot:
         return embeds
 
     def __build_team_control_views__(self, team: Team, uuid: str):
-        views = [None, None, self.__build_loot_priority_view(team, uuid)]
+        views = [None, None, self.__build_loot_priority_view__(team, uuid)]
         return views
 
-    def __build_loot_priority_view(self, team: Team, uuid: str):
+    def __build_loot_priority_view__(self, team: Team, uuid: str):
         view = View()
         btn_dps = Button(label="Priority: DPS",
                          style=discord.ButtonStyle.red if team.loot_priority != LootPriority.DPS else discord.ButtonStyle.green)

@@ -16,5 +16,5 @@ class RaidUpgrade(Enum):
 
 class Player:
     def __init__(self):
-        self.role = None
+        self.role = Role.TANK
         self.gear_upgrades = [RaidUpgrade.NO] * 11
