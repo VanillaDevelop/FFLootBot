@@ -3,6 +3,7 @@ import discord.types.components
 from discord.ext import commands
 from discord.ui import Button, View
 
+from Bot.Player import Player
 from Bot.Team import Team, LootPriority
 from Bot.TeamManager import TeamManager
 
@@ -79,8 +80,8 @@ class DiscordBot:
     def __handle_on_ready__(self):
         print(f'{self.client.user} ready!')
 
-    async def __handle_loot_priority_click__(self, ctx):
-        self.team_manager.teams[self.message_map[ctx.message.id]].loot_priority = LootPriority.DPS
+    async def __handle_loot_priority_click__(self, ctx, priority: LootPriority):
+        self.team_manager.teams[self.message_map[ctx.message.id]].loot_priority = priority
         await ctx.response.edit_message(view=self.__build_loot_priority_view(self.team_manager.teams[self.message_map[ctx.message.id]], self.message_map[ctx.message.id]))
 
     def __build_team_control_embeds__(self, team: Team, uuid: str):
@@ -122,16 +123,16 @@ class DiscordBot:
         view = View()
         btn_dps = Button(label="Priority: DPS",
                          style=discord.ButtonStyle.red if team.loot_priority != LootPriority.DPS else discord.ButtonStyle.green)
-        btn_dps.callback = self.__handle_loot_priority_click__
+        btn_dps.callback = lambda ctx: self.__handle_loot_priority_click__(ctx=ctx, priority=LootPriority.DPS)
         view.add_item(btn_dps)
 
         btn_equal = Button(label="Priority: Equal Loot",
                            style=discord.ButtonStyle.red if team.loot_priority != LootPriority.EQUAL else discord.ButtonStyle.green)
-        btn_equal.callback = self.__handle_loot_priority_click__
+        btn_equal.callback = lambda ctx: self.__handle_loot_priority_click__(ctx=ctx, priority=LootPriority.EQUAL)
         view.add_item(btn_equal)
 
         btn_none = Button(label="Priority: None",
                           style=discord.ButtonStyle.red if team.loot_priority != LootPriority.NONE else discord.ButtonStyle.green)
-        btn_none.callback = self.__handle_loot_priority_click__
+        btn_none.callback = lambda ctx: self.__handle_loot_priority_click__(ctx=ctx, priority=LootPriority.NONE)
         view.add_item(btn_none)
         return view

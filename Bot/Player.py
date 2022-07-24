@@ -16,4 +16,3 @@ class Player:
         self.role = role
 
 
-
