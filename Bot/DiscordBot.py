@@ -22,8 +22,6 @@ class DiscordBot:
         self.team_manager = TeamManager()
         # maps author IDs to team IDs
         self.team_leaders = {}
-        # maps message IDs to team IDs
-        self.message_map = {}
 
         @self.client.event
         async def on_ready():
@@ -73,7 +71,6 @@ class DiscordBot:
             message = await ctx.send(embed=ManagementEmbed(self.team_manager.teams[uuid], COMMAND_PREFIX, uuid),
                                      view=ManagementView(self.team_manager.teams[uuid],
                                                          self.__handle_loot_priority_click__))
-            self.message_map[message.id] = uuid
 
             # for (embed, view) in zip(self.__build_team_member_embeds__(self.team_manager.teams[uuid], self.team_manager.teams[uuid].members[ctx.author.id]),
             #                          self.__build_team_member_views__(self.team_manager.teams[uuid], self.team_manager.teams[uuid].members[ctx.author.id])):
@@ -92,10 +89,11 @@ class DiscordBot:
             view=self.__build_role_view(self.team_manager.teams[self.message_map[ctx.message.id]],
                                         self.message_map[ctx.message.id]))
 
-    async def __handle_loot_priority_click__(self, ctx, priority: str):
-        self.team_manager.teams[self.message_map[ctx.message.id]].loot_priority = LootPriority[priority]
-        await ctx.response.edit_message(view=ManagementView(self.team_manager.teams[self.message_map[ctx.message.id]],
-                                                            self.__handle_loot_priority_click__))
+    async def __handle_loot_priority_click__(self, interaction: discord.Interaction, priority: str):
+        self.team_manager.teams[self.team_leaders[interaction.user.id]].loot_priority = LootPriority[priority]
+        await interaction.response.edit_message(
+            view=ManagementView(self.team_manager.teams[self.team_leaders[interaction.user.id]],
+                                self.__handle_loot_priority_click__))
 
     def __build_team_member_embeds__(self, team: Team, player: Player):
         embeds = []
