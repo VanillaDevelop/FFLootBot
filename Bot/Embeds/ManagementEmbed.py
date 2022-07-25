@@ -1,14 +1,16 @@
 import discord
+
 from Bot.Team import Team
 
 
 class ManagementEmbed(discord.Embed):
-    def __init__(self, team: Team, COMMAND_PREFIX: str, uuid: str):
-        self.title(name="Team Management")
-        self.set_author(f"Team {team.name}")
+    def __init__(self, team: Team, command_prefix: str, uuid: str):
+        super().__init__()
+        self.title = "Team Management"
+        self.set_author(name=f"Team {team.name}")
         self.description = f"This is the control panel for team {team.name}."
         self.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with "
-                                                           f"**{COMMAND_PREFIX}join {uuid}**.", inline=False)
+                                                           f"**{command_prefix}join {uuid}**.", inline=False)
         self.add_field(name="Loot Distribution", value="Select below who should get priority for loot drops."
                                                        "\n**DPS**\n"
                                                        "Loot will be distributed according to the biggest DPS "
