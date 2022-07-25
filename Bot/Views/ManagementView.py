@@ -27,5 +27,6 @@ class ManagementView(discord.ui.View):
                     default = team.loot_priority == LootPriority.NONE
                 )],
             placeholder="Select loot distribution priority")
-        select_loot_distribution.callback = lambda ctx: loot_select_callback(ctx, select_loot_distribution.values[0])
+        select_loot_distribution.callback = lambda interaction: loot_select_callback(interaction,
+                                                                                     select_loot_distribution.values[0])
         self.add_item(select_loot_distribution)
