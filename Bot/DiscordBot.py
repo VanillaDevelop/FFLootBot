@@ -8,6 +8,7 @@ from Bot.Embeds.PlayerInfoEmbed import PlayerInfoEmbed
 from Bot.Player import Player, Role
 from Bot.Team import Team, LootPriority
 from Bot.TeamManager import TeamManager
+from Bot.Views.BiSView import BiSView
 from Bot.Views.ManagementView import ManagementView
 from Bot.Views.PlayerView import PlayerView
 
@@ -51,12 +52,13 @@ class DiscordBot:
             team.add_member(ctx.author.id)
 
             await ctx.send(embed=ManagementEmbed(team, COMMAND_PREFIX, uuid),
-                                     view=ManagementView(team, self.__handle_loot_priority_click__))
+                           view=ManagementView(team, self.__handle_loot_priority_click__))
 
             member_message = await ctx.send(embed=PlayerInfoEmbed(team),
                                             view=PlayerView(team, team.members[ctx.author.id],
-                                                            self.__handle_role_click__))
+                                                            self.__handle_role_click__, self.__bis_callback__))
             self.team_members[member_message.id] = uuid
+
         self.client.run(self.token)
 
     def __handle_on_ready__(self):
@@ -73,3 +75,12 @@ class DiscordBot:
         await interaction.response.edit_message(
             view=ManagementView(self.team_manager.teams[self.team_leaders[interaction.user.id]],
                                 self.__handle_loot_priority_click__))
+
+    async def __handle_bis_finish__(self, interaction: discord.Interaction, bis):
+        await interaction.response.send_message(bis)
+
+    async def __bis_callback__(self, interaction: discord.Interaction):
+        team = self.team_manager.teams[self.team_members[interaction.message.id]]
+        await interaction.response.send_message(
+            view=BiSView(team.members[interaction.user.id], self.__handle_bis_finish__)
+        )

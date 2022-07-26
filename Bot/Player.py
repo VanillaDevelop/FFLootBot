@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class Role(Enum):
@@ -7,11 +7,25 @@ class Role(Enum):
     HEAL = 3
 
 
-class RaidUpgrade(Enum):
+class RaidUpgrade(IntEnum):
     NO = 1,
     STATS = 2,
     SUBSTATS_MINOR = 3,
     SUBSTATS_MAJOR = 4
+
+
+class Item(Enum):
+    WEAPON = 1
+    HEAD = 2
+    BODY = 3
+    HANDS = 4
+    LEGS = 5
+    FEET = 6
+    EARRINGS = 7
+    NECK = 8
+    BRACELET = 9
+    RING1 = 10
+    RING2 = 11
 
 
 class Player:

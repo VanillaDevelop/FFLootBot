@@ -5,7 +5,7 @@ from Bot.Team import Team
 
 
 class PlayerView(discord.ui.View):
-    def __init__(self, team: Team, player: Player, role_select_callback: callable):
+    def __init__(self, team: Team, player: Player, role_select_callback: callable, bis_callback: callable):
         super().__init__()
         select_player_role = discord.ui.Select(
             options=[
@@ -27,3 +27,9 @@ class PlayerView(discord.ui.View):
             placeholder="Select your role.")
         select_player_role.callback = lambda ctx: role_select_callback(ctx, select_player_role.values[0])
         self.add_item(select_player_role)
+
+        set_bis_button = discord.ui.Button(
+            label="Update Best in Slot Gear"
+        )
+        set_bis_button.callback = bis_callback
+        self.add_item(set_bis_button)

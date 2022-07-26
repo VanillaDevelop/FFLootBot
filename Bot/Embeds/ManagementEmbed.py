@@ -9,20 +9,15 @@ class ManagementEmbed(discord.Embed):
         self.title = "Team Management"
         self.set_author(name=f"Team {team.name}")
         self.description = f"This is the control panel for team {team.name}."
-        self.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with "
+        self.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with\n"
                                                            f"**{command_prefix}join {uuid}**.", inline=False)
-        self.add_field(name="Loot Distribution", value="Select below who should get priority for loot drops."
-                                                       "\n**DPS**\n"
-                                                       "Loot will be distributed according to the biggest DPS "
-                                                       "improvement. This means loot will go exclusively to DPS "
-                                                       "(unless all DPS already possess a similar or better item)"
-                                                       " and large item upgrades will be prioritized."
-                                                       "\n**Equal Loot**\n"
-                                                       "Loot will be distributed in such "
-                                                       "a way that the power increase of all players is roughly "
-                                                       "equal. Players who have less loot will receive priority "
-                                                       "on drops which benefit them."
-                                                       "\n**None**\n"
-                                                       "No loot priority will be provided, but the bot will "
-                                                       "show the potential upgrade for every player.",
+        self.add_field(name="Settings", value="**Loot Priority**"
+                                              "\n__DPS__\n"
+                                              "The bot will suggest giving loot to DPS, prioritizing those who have "
+                                              "noted the item as the biggest upgrade."
+                                              "\n__Equal__\n"
+                                              "The bot will suggest giving loot to players who have received the "
+                                              "least loot so far, regardless of role."
+                                              "\n**None**\n"
+                                              "The bot will not suggest any loot distribution.",
                        inline=False)
