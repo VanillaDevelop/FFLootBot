@@ -11,9 +11,7 @@ class BiSView(discord.ui.View):
         self.player = player
         self.finish_callback = bis_finish_callback
         self.add_all_items()
-
-    async def on_timeout(self):
-        await self.message.delete()
+        self.timeout = 5
 
     async def change_gear(self, interaction: discord.Interaction, slot: int):
         self.bis_items[slot] = 1 + (self.bis_items[slot]) % 4
@@ -32,10 +30,10 @@ class BiSView(discord.ui.View):
             elif self.bis_items[i] == RaidUpgrade.SUBSTATS_MAJOR:
                 lvl = "Major Substat Upgrade"
 
-            btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}: {lvl}")
-            btn_slot.callback = lambda ctx: self.change_gear(ctx, i)
+            btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}: {lvl}", style=discord.ButtonStyle.secondary)
+            btn_slot.callback = lambda ctx, e=i: self.change_gear(ctx, e)
             self.add_item(btn_slot)
 
-        btn_finish = discord.ui.Button(label="Confirm")
+        btn_finish = discord.ui.Button(label="Confirm", row=4, style=discord.ButtonStyle.success)
         btn_finish.callback = lambda ctx: self.finish_callback(ctx, self.bis_items)
         self.add_item(btn_finish)

@@ -78,9 +78,10 @@ class DiscordBot:
 
     async def __handle_bis_finish__(self, interaction: discord.Interaction, bis):
         await interaction.response.send_message(bis)
+        await interaction.message.delete()
 
     async def __bis_callback__(self, interaction: discord.Interaction):
         team = self.team_manager.teams[self.team_members[interaction.message.id]]
         await interaction.response.send_message(
-            view=BiSView(team.members[interaction.user.id], self.__handle_bis_finish__)
-        )
+            view=BiSView(team.members[interaction.user.id], self.__handle_bis_finish__),
+            delete_after=180)
