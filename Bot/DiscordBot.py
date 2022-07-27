@@ -2,6 +2,8 @@ import discord
 import discord.types.components
 from discord.ext import commands
 from discord.ui import Button, View
+
+from Bot.Embeds.BiSEmbed import BiSEmbed
 from Bot.Embeds.InfoEmbed import InfoEmbed
 from Bot.Embeds.ManagementEmbed import ManagementEmbed
 from Bot.Embeds.PlayerInfoEmbed import PlayerInfoEmbed
@@ -82,6 +84,7 @@ class DiscordBot:
 
     async def __bis_callback__(self, interaction: discord.Interaction):
         team = self.team_manager.teams[self.team_members[interaction.message.id]]
-        await interaction.response.send_message(
-            view=BiSView(team.members[interaction.user.id], self.__handle_bis_finish__),
-            delete_after=180)
+        await interaction.response.send_message(embed=BiSEmbed(team),
+                                                view=BiSView(team.members[interaction.user.id],
+                                                             self.__handle_bis_finish__),
+                                                delete_after=600)

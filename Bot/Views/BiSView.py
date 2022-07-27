@@ -11,7 +11,6 @@ class BiSView(discord.ui.View):
         self.player = player
         self.finish_callback = bis_finish_callback
         self.add_all_items()
-        self.timeout = 5
 
     async def change_gear(self, interaction: discord.Interaction, slot: int):
         self.bis_items[slot] = 1 + (self.bis_items[slot]) % 4

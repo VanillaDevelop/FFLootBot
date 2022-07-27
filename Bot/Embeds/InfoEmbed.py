@@ -6,7 +6,6 @@ class InfoEmbed(discord.Embed):
         super().__init__()
         self.title = "XIV Loot Bot"
         self.description = "This bot was created to simplify loot distribution during progression raiding and gearing."
-        self.color = 0x00ff00
         self.add_field(name="Creating a team", value="You may have one active team at any given time. "
                                                      f"To start the flow, DM me with **{command_prefix}"
                                                      "create [name]**. You will be given"
