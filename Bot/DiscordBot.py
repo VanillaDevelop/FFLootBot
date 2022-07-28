@@ -15,6 +15,7 @@ from Bot.Views.ManagementView import ManagementView
 from Bot.Views.PlayerView import PlayerView
 
 COMMAND_PREFIX = '!'
+BIS_TIMEOUT = 600
 
 
 class DiscordBot:
@@ -51,7 +52,7 @@ class DiscordBot:
             uuid = self.team_manager.create_team(name)
             team = self.team_manager.teams[uuid]
             self.team_leaders[ctx.author.id] = uuid
-            team.add_member(ctx.author.id)
+            player = team.add_member(ctx.author.id)
 
             await ctx.send(embed=ManagementEmbed(team, COMMAND_PREFIX, uuid),
                            view=ManagementView(team, self.__handle_loot_priority_click__))
@@ -60,6 +61,8 @@ class DiscordBot:
                                             view=PlayerView(team, team.members[ctx.author.id],
                                                             self.__handle_role_click__, self.__bis_callback__))
             self.team_members[member_message.id] = uuid
+            player.player_message_id = member_message.id
+            player.player_author_id = ctx.author.id
 
         self.client.run(self.token)
 
@@ -69,8 +72,17 @@ class DiscordBot:
     async def __handle_role_click__(self, interaction, role: str):
         team = self.team_manager.teams[self.team_members[interaction.message.id]]
         team.members[interaction.user.id].role = Role[role]
+        await self.update_all_member_embeds(team)
         await interaction.response.edit_message(
-            view=PlayerView(team, team.members[interaction.user.id], self.__handle_role_click__))
+            view=PlayerView(team, team.members[interaction.user.id], self.__handle_role_click__, self.__bis_callback__))
+
+    async def update_all_member_embeds(self, team: Team):
+        for member in team.members:
+            author = team.members[member].player_author_id
+            message_id = team.members[member].player_message_id
+            channel = await self.client.fetch_user(author)
+            message = await channel.fetch_message(message_id)
+            await message.edit(embed=PlayerInfoEmbed(team))
 
     async def __handle_loot_priority_click__(self, interaction: discord.Interaction, priority: str):
         self.team_manager.teams[self.team_leaders[interaction.user.id]].loot_priority = LootPriority[priority]
@@ -78,13 +90,27 @@ class DiscordBot:
             view=ManagementView(self.team_manager.teams[self.team_leaders[interaction.user.id]],
                                 self.__handle_loot_priority_click__))
 
-    async def __handle_bis_finish__(self, interaction: discord.Interaction, bis):
-        await interaction.response.send_message(bis)
+    async def __handle_bis_finish__(self, interaction: discord.Interaction, bis, player_message_id: int):
+        team = self.team_manager.teams[self.team_members[player_message_id]]
+        team.members[interaction.user.id].bis = bis
+        team.members[interaction.user.id].is_editing_bis = False
+        await (await interaction.channel.fetch_message(player_message_id)).edit(embed=PlayerInfoEmbed(team),
+                                                                  view=PlayerView(team,
+                                                                                  team.members[interaction.user.id],
+                                                                                  self.__handle_role_click__,
+                                                                                  self.__bis_callback__))
+        await interaction.response.send_message("Gear updated.", delete_after=5)
         await interaction.message.delete()
 
     async def __bis_callback__(self, interaction: discord.Interaction):
         team = self.team_manager.teams[self.team_members[interaction.message.id]]
-        await interaction.response.send_message(embed=BiSEmbed(team),
-                                                view=BiSView(team.members[interaction.user.id],
-                                                             self.__handle_bis_finish__),
-                                                delete_after=600)
+        if team.members[interaction.user.id].is_editing_bis:
+            await interaction.response.send_message("You are already editing your BiS gear. Please use the existing "
+                                                    "interface.", delete_after=5)
+        else:
+            team.members[interaction.user.id].is_editing_bis = True
+            await interaction.response.send_message(embed=BiSEmbed(team),
+                                                    view=BiSView(team.members[interaction.user.id],
+                                                                 self.__handle_bis_finish__, BIS_TIMEOUT-1,
+                                                                 interaction.message.id),
+                                                    delete_after=BIS_TIMEOUT)

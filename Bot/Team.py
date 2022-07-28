@@ -17,3 +17,4 @@ class Team:
 
     def add_member(self, member_id: int):
         self.members[member_id] = Player()
+        return self.members[member_id]

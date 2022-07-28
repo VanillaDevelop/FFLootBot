@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 
 from Bot.Player import Player, Role, Item, RaidUpgrade
@@ -5,12 +7,20 @@ from Bot.Team import Team
 
 
 class BiSView(discord.ui.View):
-    def __init__(self, player: Player, bis_finish_callback: callable):
+    def __init__(self, player: Player, bis_finish_callback: callable, timeout: int, player_message_id: int):
         super().__init__()
         self.bis_items = player.gear_upgrades.copy()
         self.player = player
         self.finish_callback = bis_finish_callback
         self.add_all_items()
+        self.timeout = timeout
+        self.player_message_id = player_message_id
+        asyncio.create_task(self.timeout_func())
+
+    async def timeout_func(self):
+        await asyncio.sleep(self.timeout)
+        self.player.is_editing_bis = False
+        self.disable_all_items()
 
     async def change_gear(self, interaction: discord.Interaction, slot: int):
         self.bis_items[slot] = 1 + (self.bis_items[slot]) % 4
@@ -34,5 +44,5 @@ class BiSView(discord.ui.View):
             self.add_item(btn_slot)
 
         btn_finish = discord.ui.Button(label="Confirm", row=4, style=discord.ButtonStyle.success)
-        btn_finish.callback = lambda ctx: self.finish_callback(ctx, self.bis_items)
+        btn_finish.callback = lambda ctx: self.finish_callback(ctx, self.bis_items, self.player_message_id)
         self.add_item(btn_finish)
