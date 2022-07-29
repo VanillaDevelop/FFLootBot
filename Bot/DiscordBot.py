@@ -40,7 +40,7 @@ class DiscordBot:
             await ctx.send(embed=InfoEmbed())
 
         @self.client.command()
-        async def create(ctx, name: str):
+        async def create(ctx, name: str, *, player_name):
             if not isinstance(ctx.channel, discord.channel.DMChannel):
                 await ctx.send("This command can only be used in DMs.")
                 return
@@ -49,16 +49,21 @@ class DiscordBot:
                 await ctx.send("You already have an active team.")
                 return
 
+            if not player_name:
+                await ctx.send("Please enter a player name.")
+                return
+
             uuid = self.team_manager.create_team(name)
             team = self.team_manager.teams[uuid]
             self.team_leaders[ctx.author.id] = uuid
             player = team.add_member(ctx.author.id)
+            player.player_name = player_name
 
             await ctx.send(embed=ManagementEmbed(team, COMMAND_PREFIX, uuid),
                            view=ManagementView(team, self.__handle_loot_priority_click__))
 
-            member_message = await ctx.send(embed=PlayerInfoEmbed(team),
-                                            view=PlayerView(team, team.members[ctx.author.id],
+            member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
+                                            view=PlayerView(team.members[ctx.author.id],
                                                             self.__handle_role_click__, self.__bis_callback__))
             self.team_members[member_message.id] = uuid
             player.player_message_id = member_message.id
@@ -74,7 +79,7 @@ class DiscordBot:
         team.members[interaction.user.id].role = Role[role]
         await self.update_all_member_embeds(team)
         await interaction.response.edit_message(
-            view=PlayerView(team, team.members[interaction.user.id], self.__handle_role_click__, self.__bis_callback__))
+            view=PlayerView(team.members[interaction.user.id], self.__handle_role_click__, self.__bis_callback__))
 
     async def update_all_member_embeds(self, team: Team):
         for member in team.members:
@@ -82,7 +87,7 @@ class DiscordBot:
             message_id = team.members[member].player_message_id
             channel = await self.client.fetch_user(author)
             message = await channel.fetch_message(message_id)
-            await message.edit(embed=PlayerInfoEmbed(team))
+            await message.edit(embed=PlayerInfoEmbed(team, team.members[member]))
 
     async def __handle_loot_priority_click__(self, interaction: discord.Interaction, priority: str):
         self.team_manager.teams[self.team_leaders[interaction.user.id]].loot_priority = LootPriority[priority]
@@ -92,13 +97,10 @@ class DiscordBot:
 
     async def __handle_bis_finish__(self, interaction: discord.Interaction, bis, player_message_id: int):
         team = self.team_manager.teams[self.team_members[player_message_id]]
-        team.members[interaction.user.id].bis = bis
+        team.members[interaction.user.id].gear_upgrades = bis
         team.members[interaction.user.id].is_editing_bis = False
-        await (await interaction.channel.fetch_message(player_message_id)).edit(embed=PlayerInfoEmbed(team),
-                                                                  view=PlayerView(team,
-                                                                                  team.members[interaction.user.id],
-                                                                                  self.__handle_role_click__,
-                                                                                  self.__bis_callback__))
+        team.members[interaction.user.id].update_twines_and_coatings()
+        await self.update_all_member_embeds(team)
         await interaction.response.send_message("Gear updated.", delete_after=5)
         await interaction.message.delete()
 
@@ -111,6 +113,6 @@ class DiscordBot:
             team.members[interaction.user.id].is_editing_bis = True
             await interaction.response.send_message(embed=BiSEmbed(team),
                                                     view=BiSView(team.members[interaction.user.id],
-                                                                 self.__handle_bis_finish__, BIS_TIMEOUT-1,
+                                                                 self.__handle_bis_finish__, BIS_TIMEOUT - 1,
                                                                  interaction.message.id),
                                                     delete_after=BIS_TIMEOUT)

@@ -5,7 +5,7 @@ from Bot.Team import Team
 
 
 class PlayerView(discord.ui.View):
-    def __init__(self, team: Team, player: Player, role_select_callback: callable, bis_callback: callable):
+    def __init__(self, player: Player, role_select_callback: callable, bis_callback: callable):
         super().__init__()
         select_player_role = discord.ui.Select(
             options=[
@@ -16,8 +16,8 @@ class PlayerView(discord.ui.View):
                 ),
                 discord.SelectOption(
                     label="Role: Healer",
-                    value=Role.HEAL.name,
-                    default=player.role == Role.HEAL
+                    value=Role.HEALER.name,
+                    default=player.role == Role.HEALER
                 ),
                 discord.SelectOption(
                     label="Role: DPS",
@@ -29,7 +29,8 @@ class PlayerView(discord.ui.View):
         self.add_item(select_player_role)
 
         set_bis_button = discord.ui.Button(
-            label="Update Best in Slot Gear"
+            label="Update Best in Slot Gear",
+            style=discord.ButtonStyle.primary
         )
         set_bis_button.callback = bis_callback
         self.add_item(set_bis_button)

@@ -2,8 +2,7 @@ import asyncio
 
 import discord
 
-from Bot.Player import Player, Role, Item, RaidUpgrade
-from Bot.Team import Team
+from Bot.Player import Player, Item, RaidUpgrade
 
 
 class BiSView(discord.ui.View):
