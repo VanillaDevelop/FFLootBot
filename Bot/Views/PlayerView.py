@@ -5,7 +5,7 @@ from Bot.Team import Team
 
 
 class PlayerView(discord.ui.View):
-    def __init__(self, player: Player, role_select_callback: callable, bis_callback: callable):
+    def __init__(self, player: Player, role_select_callback: callable, bis_callback: callable, purchase_callback: callable):
         super().__init__()
         select_player_role = discord.ui.Select(
             options=[
@@ -34,3 +34,11 @@ class PlayerView(discord.ui.View):
         )
         set_bis_button.callback = bis_callback
         self.add_item(set_bis_button)
+
+        add_item_button = discord.ui.Button(
+            label="Add Purchased Item",
+            style=discord.ButtonStyle.primary
+        )
+        add_item_button.callback = purchase_callback
+        self.add_item(add_item_button)
+

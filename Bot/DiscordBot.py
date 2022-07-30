@@ -7,15 +7,18 @@ from Bot.Embeds.BiSEmbed import BiSEmbed
 from Bot.Embeds.InfoEmbed import InfoEmbed
 from Bot.Embeds.ManagementEmbed import ManagementEmbed
 from Bot.Embeds.PlayerInfoEmbed import PlayerInfoEmbed
-from Bot.Player import Player, Role
+from Bot.Embeds.PlayerPurchaseEmbed import PlayerPurchaseEmbed
+from Bot.Player import Player, Role, RaidUpgrade
 from Bot.Team import Team, LootPriority
 from Bot.TeamManager import TeamManager
 from Bot.Views.BiSView import BiSView
 from Bot.Views.ManagementView import ManagementView
+from Bot.Views.PlayerPurchaseView import PlayerPurchaseView
 from Bot.Views.PlayerView import PlayerView
 
 COMMAND_PREFIX = '!'
 BIS_TIMEOUT = 600
+PURCHASE_TIMEOUT = 180
 
 
 class DiscordBot:
@@ -64,7 +67,8 @@ class DiscordBot:
 
             member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
                                             view=PlayerView(team.members[ctx.author.id],
-                                                            self.__handle_role_click__, self.__bis_callback__))
+                                                            self.__handle_role_click__, self.__bis_callback__,
+                                                            self.__purchase_callback__))
             self.team_members[member_message.id] = uuid
             player.player_message_id = member_message.id
             player.player_author_id = ctx.author.id
@@ -79,7 +83,8 @@ class DiscordBot:
         team.members[interaction.user.id].role = Role[role]
         await self.update_all_member_embeds(team)
         await interaction.response.edit_message(
-            view=PlayerView(team.members[interaction.user.id], self.__handle_role_click__, self.__bis_callback__))
+            view=PlayerView(team.members[interaction.user.id], self.__handle_role_click__, self.__bis_callback__,
+                            self.__purchase_callback__))
 
     async def update_all_member_embeds(self, team: Team):
         for member in team.members:
@@ -116,3 +121,34 @@ class DiscordBot:
                                                                  self.__handle_bis_finish__, BIS_TIMEOUT - 1,
                                                                  interaction.message.id),
                                                     delete_after=BIS_TIMEOUT)
+
+    async def __purchase_callback__(self, interaction: discord.Interaction):
+        team = self.team_manager.teams[self.team_members[interaction.message.id]]
+        if team.members[interaction.user.id].is_adding_item:
+            await interaction.response.send_message("You are already adding an item. Please use the existing "
+                                                    "interface.", delete_after=5)
+        elif len([i for i in team.members[interaction.user.id].gear_upgrades if i != RaidUpgrade.NO]) == 0:
+            await interaction.response.send_message("There is no gear for you to log. Set up your BiS first.",
+                                                    delete_after=5)
+        else:
+            team.members[interaction.user.id].is_adding_item = True
+            await interaction.response.send_message(embed=PlayerPurchaseEmbed(),
+                                                    view=PlayerPurchaseView(team.members[interaction.user.id],
+                                                                            self.__handle_purchase_finish__,
+                                                                            PURCHASE_TIMEOUT - 1,
+                                                                            interaction.message.id),
+                                                    delete_after=PURCHASE_TIMEOUT)
+
+    async def __handle_purchase_finish__(self, interaction: discord.Interaction, item: int, player_message_id: int):
+        team = self.team_manager.teams[self.team_members[player_message_id]]
+        player = team.members[interaction.user.id]
+        if item == 98:
+            player.twines_got += 1
+        elif item == 99:
+            player.coatings_got += 1
+        else:
+            team.members[interaction.user.id].gear_owned.append(item - 1)
+        player.is_adding_item = False
+        await self.update_all_member_embeds(team)
+        await interaction.response.send_message("Item logged.", delete_after=5)
+        await interaction.message.delete()

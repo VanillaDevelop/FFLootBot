@@ -31,7 +31,9 @@ class Player:
     def __init__(self):
         self.role = Role.TANK
         self.gear_upgrades = [RaidUpgrade.NO] * len(Item)
+        self.gear_owned = []
         self.is_editing_bis = False
+        self.is_adding_item = False
         self.player_message_id = None
         self.player_author_id = None
         self.player_name = None
