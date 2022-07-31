@@ -99,6 +99,7 @@ class DiscordBot:
         await interaction.response.edit_message(
             view=ManagementView(self.team_manager.teams[self.team_leaders[interaction.user.id]],
                                 self.__handle_loot_priority_click__))
+        await self.update_all_member_embeds(self.team_manager.teams[self.team_leaders[interaction.user.id]])
 
     async def __handle_bis_finish__(self, interaction: discord.Interaction, bis, player_message_id: int):
         team = self.team_manager.teams[self.team_members[player_message_id]]
