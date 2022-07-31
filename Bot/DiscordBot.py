@@ -147,7 +147,7 @@ class DiscordBot:
         elif item == 99:
             player.coatings_got += 1
         else:
-            team.members[interaction.user.id].gear_owned.append(item - 1)
+            team.members[interaction.user.id].gear_owned.append(item)
         player.is_adding_item = False
         await self.update_all_member_embeds(team)
         await interaction.response.send_message("Item logged.", delete_after=5)

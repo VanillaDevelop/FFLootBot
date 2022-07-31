@@ -16,7 +16,7 @@ class PlayerInfoEmbed(discord.Embed):
         # add total items needed
         teaminfo += "\n**Gear Needed**"
         for (i, item) in enumerate(Item):
-            c = len([1 for member in team.members if team.members[member].gear_upgrades[i] != RaidUpgrade.NO])
+            c = len([1 for member in team.members if team.members[member].get_unowned_gear()[i] != RaidUpgrade.NO])
             teaminfo += f"\n{item.name.capitalize()}: {c}"
         # add total twines and coatings needed
         twines = [team.members[member].twines_needed - team.members[member].twines_got for member in team.members]
@@ -31,11 +31,11 @@ class PlayerInfoEmbed(discord.Embed):
                     f"\nRole: {player.role.name.capitalize()}" \
                     f"\n**Gear you need: **"
         for (i, upgrade) in enumerate(Item):
-            if player.gear_upgrades[i] == RaidUpgrade.STATS:
+            if player.get_unowned_gear()[i] == RaidUpgrade.STATS:
                 self_info += f"\n{upgrade.name.capitalize()}: Same Stats"
-            elif player.gear_upgrades[i] == RaidUpgrade.SUBSTATS_MINOR:
+            elif player.get_unowned_gear()[i] == RaidUpgrade.SUBSTATS_MINOR:
                 self_info += f"\n{upgrade.name.capitalize()}: Minor Substat Increase"
-            elif player.gear_upgrades[i] == RaidUpgrade.SUBSTATS_MAJOR:
+            elif player.get_unowned_gear()[i] == RaidUpgrade.SUBSTATS_MAJOR:
                 self_info += f"\n{upgrade.name.capitalize()}: Major Substat Increase"
         if player.twines_needed - player.twines_got > 0:
             self_info += f"\nTwines: {player.twines_needed - player.twines_got}"

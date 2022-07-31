@@ -47,3 +47,6 @@ class Player:
         self.twines_needed = len([gear for gear in self.gear_upgrades[1:6] if gear == RaidUpgrade.NO])
         # assume 1 coating always needed for second ring
         self.coatings_needed = 1 + len([gear for gear in self.gear_upgrades[6:] if gear == RaidUpgrade.NO])
+
+    def get_unowned_gear(self):
+        return [item if i not in self.gear_owned else RaidUpgrade.NO for i, item in enumerate(self.gear_upgrades)]
