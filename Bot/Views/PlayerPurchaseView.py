@@ -5,10 +5,12 @@ from Bot.Player import Player, Item, RaidUpgrade
 
 
 class PlayerPurchaseView(discord.ui.View):
-    def __init__(self, player: Player, purchase_callback: callable, timeout: int, player_message_id: int):
+    def __init__(self, player: Player, purchase_callback: callable, cancel_callback: callable, timeout: int,
+                 player_message_id: int):
         super().__init__()
         self.player = player
         self.purchase_callback = purchase_callback
+        self.cancel_callback = cancel_callback
         self.add_item_options()
         self.timeout = timeout
         self.player_message_id = player_message_id
@@ -33,3 +35,6 @@ class PlayerPurchaseView(discord.ui.View):
             btn_slot = discord.ui.Button(label="Coating", style=discord.ButtonStyle.success)
             btn_slot.callback = lambda ctx: self.purchase_callback(ctx, 99, self.player_message_id)
             self.add_item(btn_slot)
+        btn_cancel = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.danger)
+        btn_cancel.callback = lambda ctx: self.cancel_callback(ctx, self.player_message_id)
+        self.add_item(btn_cancel)

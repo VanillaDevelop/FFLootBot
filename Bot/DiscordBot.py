@@ -118,7 +118,9 @@ class DiscordBot:
             team.members[interaction.user.id].is_editing_bis = True
             await interaction.response.send_message(embed=BiSEmbed(team),
                                                     view=BiSView(team.members[interaction.user.id],
-                                                                 self.__handle_bis_finish__, BIS_TIMEOUT - 1,
+                                                                 self.__handle_bis_finish__,
+                                                                 self.__handle_cancel_bis__,
+                                                                 BIS_TIMEOUT - 1,
                                                                  interaction.message.id),
                                                     delete_after=BIS_TIMEOUT)
 
@@ -135,6 +137,7 @@ class DiscordBot:
             await interaction.response.send_message(embed=PlayerPurchaseEmbed(),
                                                     view=PlayerPurchaseView(team.members[interaction.user.id],
                                                                             self.__handle_purchase_finish__,
+                                                                            self.__handle_cancel_purchase__,
                                                                             PURCHASE_TIMEOUT - 1,
                                                                             interaction.message.id),
                                                     delete_after=PURCHASE_TIMEOUT)
@@ -151,4 +154,16 @@ class DiscordBot:
         player.is_adding_item = False
         await self.update_all_member_embeds(team)
         await interaction.response.send_message("Item logged.", delete_after=5)
+        await interaction.message.delete()
+
+    async def __handle_cancel_bis__(self, interaction: discord.Interaction, player_message_id: int):
+        team = self.team_manager.teams[self.team_members[player_message_id]]
+        team.members[interaction.user.id].is_editing_bis = False
+        await interaction.response.send_message("Action cancelled.", delete_after=5)
+        await interaction.message.delete()
+
+    async def __handle_cancel_purchase__(self, interaction: discord.Interaction, player_message_id: int):
+        team = self.team_manager.teams[self.team_members[player_message_id]]
+        team.members[interaction.user.id].is_adding_item = False
+        await interaction.response.send_message("Action cancelled.", delete_after=5)
         await interaction.message.delete()

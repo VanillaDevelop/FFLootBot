@@ -6,11 +6,13 @@ from Bot.Player import Player, Item, RaidUpgrade
 
 
 class BiSView(discord.ui.View):
-    def __init__(self, player: Player, bis_finish_callback: callable, timeout: int, player_message_id: int):
+    def __init__(self, player: Player, bis_finish_callback: callable,
+                 bis_cancel_callback: callable, timeout: int, player_message_id: int):
         super().__init__()
         self.bis_items = player.gear_upgrades.copy()
         self.player = player
         self.finish_callback = bis_finish_callback
+        self.cancel_callback = bis_cancel_callback
         self.add_all_items()
         self.timeout = timeout
         self.player_message_id = player_message_id
@@ -41,6 +43,10 @@ class BiSView(discord.ui.View):
             btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}: {lvl}", style=discord.ButtonStyle.secondary)
             btn_slot.callback = lambda ctx, e=i: self.change_gear(ctx, e)
             self.add_item(btn_slot)
+
+        btn_cancel = discord.ui.Button(label="Cancel", row=4, style=discord.ButtonStyle.danger)
+        btn_cancel.callback = lambda ctx: self.cancel_callback(ctx, self.player_message_id)
+        self.add_item(btn_cancel)
 
         btn_finish = discord.ui.Button(label="Confirm", row=4, style=discord.ButtonStyle.success)
         btn_finish.callback = lambda ctx: self.finish_callback(ctx, self.bis_items, self.player_message_id)
