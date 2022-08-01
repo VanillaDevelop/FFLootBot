@@ -3,7 +3,7 @@ from Bot.Team import LootPriority, Team
 
 
 class ManagementView(discord.ui.View):
-    def __init__(self, team: Team, loot_select_callback: callable):
+    def __init__(self, team: Team, loot_select_callback: callable, loot_assign_callback: callable):
         super().__init__()
         select_loot_distribution = discord.ui.Select(
             options=[
@@ -30,3 +30,9 @@ class ManagementView(discord.ui.View):
         select_loot_distribution.callback = lambda interaction: loot_select_callback(interaction,
                                                                                      select_loot_distribution.values[0])
         self.add_item(select_loot_distribution)
+
+        add_loot_button = discord.ui.Button(
+            label="Assign Loot to Player",
+            style=discord.ButtonStyle.primary)
+        add_loot_button.callback = loot_assign_callback
+        self.add_item(add_loot_button)

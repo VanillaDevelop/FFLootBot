@@ -3,14 +3,16 @@ import discord.types.components
 from discord.ext import commands
 from discord.ui import Button, View
 
+from Bot.Embeds.AssignLootEmbed import AssignLootEmbed
 from Bot.Embeds.BiSEmbed import BiSEmbed
 from Bot.Embeds.InfoEmbed import InfoEmbed
 from Bot.Embeds.ManagementEmbed import ManagementEmbed
 from Bot.Embeds.PlayerInfoEmbed import PlayerInfoEmbed
 from Bot.Embeds.PlayerPurchaseEmbed import PlayerPurchaseEmbed
-from Bot.Player import Player, Role, RaidUpgrade
+from Bot.Player import Player, Role, RaidUpgrade, Item
 from Bot.Team import Team, LootPriority
 from Bot.TeamManager import TeamManager
+from Bot.Views.AssignLootView import AssignLootView
 from Bot.Views.BiSView import BiSView
 from Bot.Views.ManagementView import ManagementView
 from Bot.Views.PlayerPurchaseView import PlayerPurchaseView
@@ -63,7 +65,8 @@ class DiscordBot:
             player.player_name = player_name
 
             await ctx.send(embed=ManagementEmbed(team, COMMAND_PREFIX, uuid),
-                           view=ManagementView(team, self.__handle_loot_priority_click__))
+                           view=ManagementView(team, self.__handle_loot_priority_click__,
+                                               self.__assign_loot_callback__))
 
             member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
                                             view=PlayerView(team.members[ctx.author.id],
@@ -98,7 +101,7 @@ class DiscordBot:
         self.team_manager.teams[self.team_leaders[interaction.user.id]].loot_priority = LootPriority[priority]
         await interaction.response.edit_message(
             view=ManagementView(self.team_manager.teams[self.team_leaders[interaction.user.id]],
-                                self.__handle_loot_priority_click__))
+                                self.__handle_loot_priority_click__, self.__assign_loot_callback__))
         await self.update_all_member_embeds(self.team_manager.teams[self.team_leaders[interaction.user.id]])
 
     async def __handle_bis_finish__(self, interaction: discord.Interaction, bis, player_message_id: int):
@@ -124,6 +127,29 @@ class DiscordBot:
                                                                  BIS_TIMEOUT - 1,
                                                                  interaction.message.id),
                                                     delete_after=BIS_TIMEOUT)
+
+    async def __assign_loot_callback__(self, interaction: discord.Interaction):
+        team = self.team_manager.teams[self.team_leaders[interaction.user.id]]
+        team.is_assigning_loot = True
+        await interaction.response.send_message(
+            embed=AssignLootEmbed(),
+            view=AssignLootView(
+                team,
+                self.__handle_assign_loot_callback__,
+                self.__handle_cancel_assign_loot__,
+                PURCHASE_TIMEOUT - 1,
+                interaction.message.id
+            ),
+            delete_after=PURCHASE_TIMEOUT)
+
+    async def __handle_assign_loot_callback__(self, interaction: discord.Interaction, item: Item, player: str):
+        pass
+
+    async def __handle_cancel_assign_loot__(self, interaction: discord.Interaction):
+        team = self.team_manager.teams[self.team_members[interaction.message.id]]
+        team.is_assigning_loot = False
+        await interaction.response.send_message("Loot assignment cancelled.", delete_after=5)
+        await interaction.message.delete()
 
     async def __purchase_callback__(self, interaction: discord.Interaction):
         team = self.team_manager.teams[self.team_members[interaction.message.id]]

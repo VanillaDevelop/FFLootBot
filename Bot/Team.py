@@ -14,6 +14,7 @@ class Team:
         self.members = {}
         self.name = name
         self.loot_priority = LootPriority.NONE
+        self.is_assigning_loot = False
 
     def add_member(self, member_id: int):
         self.members[member_id] = Player()
