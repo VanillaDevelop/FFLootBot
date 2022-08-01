@@ -146,7 +146,7 @@ class DiscordBot:
             ),
             delete_after=PURCHASE_TIMEOUT)
 
-    async def __handle_assign_loot_callback__(self, interaction: discord.Interaction, item: Item, player: str):
+    async def __handle_assign_loot_callback__(self, interaction: discord.Interaction, item: int, player: str):
         if item is None:
             await interaction.response.send_message("Please select an item.", delete_after=5)
             return
@@ -157,15 +157,42 @@ class DiscordBot:
 
         team = self.team_manager.teams[self.team_leaders[interaction.user.id]]
         team.is_assigning_loot = False
-        if item.value-1 in team.members[player].gear_owned:
-            await interaction.response.send_message(f"{player} already has this item. Process aborted", delete_after=5)
+
+        if item == 98 or item == 99:
+            if item == 98 and team.members[player].twines_needed - team.members[player].twines_got <= 0:
+                await interaction.response.send_message("This player does not need any more twines.", delete_after=5)
+                return
+            if item == 99 and team.members[player].coatings_needed - team.members[player].coatings_got <= 0:
+                await interaction.response.send_message("This player does not need any more coatings.", delete_after=5)
+                return
+
+            if item == 98:
+                team.members[player].twines_got += 1
+                await interaction.response.send_message(f"Assigned Twine to {team.members[player].player_name}.",
+                                                        delete_after=5)
+            else:
+                team.members[player].coatings_got += 1
+                await interaction.response.send_message(f"Assigned Coating to {team.members[player].player_name}.",
+                                                        delete_after=5)
+            await self.update_all_member_embeds(team)
+            await interaction.message.delete()
+            return
+
+        if item-1 in team.members[player].gear_owned:
+            await interaction.response.send_message(f"{team.members[player].player_name} already has this item. "
+                                                    f"Process aborted", delete_after=5)
         else:
-            team.members[player].gear_owned.append(item.value-1)
+            team.members[player].gear_owned.append(item-1)
             for member in team.members:
                 if member != player and team.members[member].gear_upgrades[item-1] != RaidUpgrade.NO:
-                    team.members[member].pity += 1
-            await interaction.response.send_message(f"{team.members[player].player_name} has been assigned a piece"
-                                                    f" of type {item.name.capitalize()}.", delete_after=5)
+                    if item > 6:
+                        team.members[member].pity += 4
+                    elif item == Item.WEAPON or item == Item.BODY or item == Item.LEGS:
+                        team.members[member].pity += 8
+                    else:
+                        team.members[member].pity += 6
+            await interaction.response.send_message(f"{team.members[player].player_name} has been assigned the item.",
+                                                    delete_after=5)
         await self.update_all_member_embeds(team)
         await interaction.message.delete()
 

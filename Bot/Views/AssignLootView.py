@@ -21,7 +21,10 @@ class AssignLootView(discord.ui.View):
         dropdown_items = discord.ui.Select()
         for slot in Item:
             dropdown_items.add_option(label=slot.name.capitalize(), value=slot.name)
+        dropdown_items.add_option(label="Twine", value=str(98))
+        dropdown_items.add_option(label="Coating", value=str(99))
         dropdown_items.callback = lambda interaction: self.change_item(interaction, dropdown_items.values[0])
+
         self.add_item(dropdown_items)
 
         dropdown_players = discord.ui.Select()
@@ -44,7 +47,10 @@ class AssignLootView(discord.ui.View):
         self.disable_all_items()
 
     async def change_item(self, interaction: discord.Interaction, item):
-        self.item = Item[item]
+        if item == "98" or item == "99":
+            self.item = int(item)
+        else:
+            self.item = Item[item].value
         await interaction.response.defer()
 
     async def change_player(self, interaction, player):
