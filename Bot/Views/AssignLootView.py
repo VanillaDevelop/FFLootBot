@@ -31,11 +31,11 @@ class AssignLootView(discord.ui.View):
         self.add_item(dropdown_players)
 
         btn_cancel = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.danger)
-        btn_cancel.callback = lambda ctx: self.cancel_callback(ctx, self.player_message_id)
+        btn_cancel.callback = lambda ctx: self.cancel_callback(ctx)
         self.add_item(btn_cancel)
 
         btn_assign = discord.ui.Button(label="Confirm", style=discord.ButtonStyle.success)
-        btn_assign.callback = lambda ctx: self.assign_callback(ctx, self.item, self.player, self.player_message_id)
+        btn_assign.callback = lambda ctx: self.assign_callback(ctx, self.item, self.player)
         self.add_item(btn_assign)
 
     async def timeout_func(self):
@@ -48,5 +48,5 @@ class AssignLootView(discord.ui.View):
         await interaction.response.defer()
 
     async def change_player(self, interaction, player):
-        self.player = self.team.members[int(player)]
+        self.player = int(player)
         await interaction.response.defer()
