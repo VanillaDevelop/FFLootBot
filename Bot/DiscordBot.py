@@ -136,7 +136,7 @@ class DiscordBot:
             return
         team.is_assigning_loot = True
         await interaction.response.send_message(
-            embed=AssignLootEmbed(),
+            embed=AssignLootEmbed(team),
             view=AssignLootView(
                 team,
                 self.__handle_assign_loot_callback__,
