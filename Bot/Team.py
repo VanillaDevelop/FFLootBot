@@ -22,26 +22,27 @@ class Team:
 
     def gear_priority(self, gear_type: int):
         if gear_type <= len(Item):
-            plist = map(
-                lambda p: (p, self.members[p].role, self.members[p].gear_upgrades[gear_type], self.members[p].pity),
+            plist = list(map(
+                lambda p: (p, self.members[p].role, self.members[p].gear_upgrades[gear_type-1], self.members[p].pity),
                 [member for member in self.members
-                 if self.members[member].gear_upgrades[gear_type] != RaidUpgrade.NO])
+                 if self.members[member].gear_upgrades[gear_type-1] != RaidUpgrade.NO]))
             if self.loot_priority == LootPriority.DPS:
-                plist = plist.sort(key=lambda p: (-p[1], p[2]))
+                plist.sort(key=lambda p: (-p[1].value, p[2]))
             elif self.loot_priority == LootPriority.EQUAL:
-                plist = plist.sort(key=lambda p: (p[3], p[2]))
+                plist.sort(key=lambda p: (p[3], p[2]))
             return plist
 
         # priority for twines and coatings is based on who needs the most, prioritizing DPS if DPS priority is selected
         if gear_type == 98:
-            plist = map(lambda p: (p, self.members[p].role, self.members[p].twines_needed - self.members[p.twines_got]),
-                        self.members)
+            plist = list(map(lambda p: (p, self.members[p].role,
+                                        self.members[p].twines_needed - self.members[p].twines_got),
+                             self.members))
         elif gear_type == 99:
-            plist = map(
-                lambda p: (p, self.members[p].role, self.members[p].coatings_needed - self.members[p.coatings_got]),
-                self.members)
+            plist = list(map(
+                lambda p: (p, self.members[p].role, self.members[p].coatings_needed - self.members[p].coatings_got),
+                self.members))
         if self.loot_priority == LootPriority.DPS:
-            plist.sort(key=lambda p: (-p[1], p[2]))
+            plist.sort(key=lambda p: (-p[1].value, p[2]))
         else:
             plist.sort(key=lambda p: p[2])
         return plist
