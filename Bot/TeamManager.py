@@ -5,7 +5,10 @@ import uuid
 class TeamManager:
     def __init__(self):
         self.teams = {}
-        self.team_member_index = {}
+        # maps author IDs to team IDs
+        self.team_leaders = {}
+        # maps message IDs to team IDs
+        self.team_members = {}
 
     def create_team(self, name: str):
         team_id = uuid.uuid4().hex

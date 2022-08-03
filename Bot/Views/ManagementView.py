@@ -4,14 +4,14 @@ from Bot.Team import LootPriority, Team
 
 class ManagementView(discord.ui.View):
     def __init__(self, team: Team, loot_select_callback: callable, loot_assign_callback: callable):
-        super().__init__()
+        super().__init__(timeout=None)
         select_loot_distribution = discord.ui.Select(
             options=[
                 discord.SelectOption(
                     label="Loot Priority: DPS",
                     value=LootPriority.DPS.name,
                     description="Distribute loot to DPS first, according to highest stat gain.",
-                    default=team.loot_priority == LootPriority.DPS
+                    default=team.loot_priority == LootPriority.DPS,
                 ),
                 discord.SelectOption(
                     label="Loot Priority: Equal",
@@ -26,13 +26,16 @@ class ManagementView(discord.ui.View):
                     description="Do not prioritize loot distribution.",
                     default=team.loot_priority == LootPriority.NONE
                 )],
-            placeholder="Select loot distribution priority")
+            placeholder="Select loot distribution priority",
+            custom_id="SELECT_LOOT_PRIORITY",)
         select_loot_distribution.callback = lambda interaction: loot_select_callback(interaction,
                                                                                      select_loot_distribution.values[0])
         self.add_item(select_loot_distribution)
 
         add_loot_button = discord.ui.Button(
             label="Assign Loot to Player",
-            style=discord.ButtonStyle.primary)
+            style=discord.ButtonStyle.primary,
+            custom_id="ASSIGN_LOOT_BUTTON",
+        )
         add_loot_button.callback = loot_assign_callback
         self.add_item(add_loot_button)
