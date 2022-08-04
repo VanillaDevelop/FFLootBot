@@ -68,11 +68,11 @@ class DiscordBot:
                 return
 
             if ctx.author.id in self.team_manager.team_leaders:
-                await ctx.send("You already have an active team.")
+                await ctx.send("You already have an active team.", delete_after=5)
                 return
 
             if not player_name:
-                await ctx.send("Please enter a player name.")
+                await ctx.send("Please enter a player name.", delete_after=5)
                 return
 
             uuid = self.team_manager.create_team(name)
@@ -100,6 +100,40 @@ class DiscordBot:
             self.team_manager.team_members[member_message.id] = uuid
             player.player_message_id = member_message.id
             player.player_author_id = ctx.author.id
+
+        @self.client.command()
+        async def join(ctx, uuid: str, *, player_name):
+            if not isinstance(ctx.channel, discord.channel.DMChannel):
+                await ctx.send("This command can only be used in DMs.")
+                return
+
+            if uuid not in self.team_manager.teams:
+                await ctx.send("That team does not exist.", delete_after=5)
+                return
+
+            team = self.team_manager.teams[uuid]
+            if ctx.author.id in team.members:
+                await ctx.send("You are already part of this team.", delete_after=5)
+                return
+
+            if not player_name:
+                await ctx.send("Please enter a player name.", delete_after=5)
+                return
+
+            player = team.add_member(ctx.author.id)
+            player.player_name = player_name
+
+            self.client.add_view(PlayerView(team.members[ctx.author.id],
+                                            self.__handle_role_click__, self.__bis_callback__,
+                                            self.__purchase_callback__, self.__handle_leave_team__))
+            member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
+                                            view=PlayerView(team.members[ctx.author.id],
+                                                            self.__handle_role_click__, self.__bis_callback__,
+                                                            self.__purchase_callback__, self.__handle_leave_team__))
+            self.team_manager.team_members[member_message.id] = uuid
+            player.player_message_id = member_message.id
+            player.player_author_id = ctx.author.id
+            await self.update_all_member_embeds(team)
 
         self.client.run(self.token)
 

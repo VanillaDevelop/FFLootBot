@@ -28,9 +28,9 @@ class Team:
                  if self.members[member].gear_upgrades[gear_type-1] != RaidUpgrade.NO
                  and (gear_type - 1) not in self.members[member].gear_owned]))
             if self.loot_priority == LootPriority.DPS:
-                plist.sort(key=lambda p: (-p[1].value, p[2]))
+                plist.sort(key=lambda p: (p[1].value, -p[2]))
             elif self.loot_priority == LootPriority.EQUAL:
-                plist.sort(key=lambda p: (p[3], p[2]))
+                plist.sort(key=lambda p: (-p[3], -p[2]))
             return plist
 
         # priority for twines and coatings is based on who needs the most, prioritizing DPS if DPS priority is selected
@@ -45,7 +45,7 @@ class Team:
                 [member for member in self.members
                  if self.members[member].coatings_needed - self.members[member].coatings_got > 0]))
         if self.loot_priority == LootPriority.DPS:
-            plist.sort(key=lambda p: (-p[1].value, p[2]))
+            plist.sort(key=lambda p: (p[1].value, -p[2]))
         else:
-            plist.sort(key=lambda p: p[2])
+            plist.sort(key=lambda p: -p[2])
         return plist

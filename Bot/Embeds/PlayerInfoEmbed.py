@@ -34,7 +34,7 @@ class PlayerInfoEmbed(discord.Embed):
 
         self_info = f"Name: {player.player_name}" \
                     f"\nRole: {player.role.name.capitalize()}" \
-                    f"\n\n**Gear you need: **"
+                    f"\n\n**Gear you need**"
         for (i, upgrade) in enumerate(Item):
             if player.get_unowned_gear()[i] != RaidUpgrade.NO:
                 self_info += f"\n{upgrade.name.capitalize()} ({str(RaidUpgrade(player.get_unowned_gear()[i]))})"

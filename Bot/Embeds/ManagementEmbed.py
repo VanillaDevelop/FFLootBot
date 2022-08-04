@@ -10,7 +10,8 @@ class ManagementEmbed(discord.Embed):
         self.set_author(name=f"Team {team.name}")
         self.description = f"This is the control panel for team {team.name}."
         self.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with\n"
-                                                           f"**{command_prefix}join {uuid}**.", inline=False)
+                                                           f"**{command_prefix}join {uuid}** [Player Name]",
+                       inline=False)
         self.add_field(name="Settings", value="**Loot Priority**"
                                               "\n__DPS__\n"
                                               "The bot will suggest giving loot to DPS, prioritizing those who have "
