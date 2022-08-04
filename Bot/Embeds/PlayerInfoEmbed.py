@@ -34,12 +34,8 @@ class PlayerInfoEmbed(discord.Embed):
                     f"\nRole: {player.role.name.capitalize()}" \
                     f"\n\n**Gear you need: **"
         for (i, upgrade) in enumerate(Item):
-            if player.get_unowned_gear()[i] == RaidUpgrade.STATS:
-                self_info += f"\n{upgrade.name.capitalize()}: Same Stats"
-            elif player.get_unowned_gear()[i] == RaidUpgrade.SUBSTATS_MINOR:
-                self_info += f"\n{upgrade.name.capitalize()}: Minor Substat Increase"
-            elif player.get_unowned_gear()[i] == RaidUpgrade.SUBSTATS_MAJOR:
-                self_info += f"\n{upgrade.name.capitalize()}: Major Substat Increase"
+            if player.get_unowned_gear()[i] != RaidUpgrade.NO:
+                self_info += f"\n{upgrade.name.capitalize()} ({str(RaidUpgrade(player.get_unowned_gear()[i]))})"
         if player.twines_needed - player.twines_got > 0:
             self_info += f"\nTwines: {player.twines_needed - player.twines_got}"
         if player.coatings_needed - player.coatings_got > 0:

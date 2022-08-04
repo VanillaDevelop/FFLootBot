@@ -13,6 +13,18 @@ class RaidUpgrade(IntEnum):
     SUBSTATS_MINOR = 3,
     SUBSTATS_MAJOR = 4
 
+    def __str__(self):
+        if self == RaidUpgrade.NO:
+            return "No Upgrade"
+        elif self == RaidUpgrade.STATS:
+            return "Same Stats"
+        elif self == RaidUpgrade.SUBSTATS_MINOR:
+            return "Minor Substat Upgrade"
+        elif self == RaidUpgrade.SUBSTATS_MAJOR:
+            return "Major Substat Upgrade"
+        else:
+            return "Unknown"
+
 
 class Item(Enum):
     WEAPON = 1

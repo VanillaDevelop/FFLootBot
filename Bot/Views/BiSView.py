@@ -31,16 +31,8 @@ class BiSView(discord.ui.View):
 
     def add_all_items(self):
         for (i, slot) in enumerate(Item):
-            if self.bis_items[i] == RaidUpgrade.NO:
-                lvl = "No Upgrade"
-            elif self.bis_items[i] == RaidUpgrade.STATS:
-                lvl = "Same Stats"
-            elif self.bis_items[i] == RaidUpgrade.SUBSTATS_MINOR:
-                lvl = "Minor Substat Upgrade"
-            elif self.bis_items[i] == RaidUpgrade.SUBSTATS_MAJOR:
-                lvl = "Major Substat Upgrade"
-
-            btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}: {lvl}", style=discord.ButtonStyle.secondary)
+            btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}: {str(RaidUpgrade(self.bis_items[i]))}",
+                                         style=discord.ButtonStyle.secondary)
             btn_slot.callback = lambda ctx, e=i: self.change_gear(ctx, e)
             self.add_item(btn_slot)
 

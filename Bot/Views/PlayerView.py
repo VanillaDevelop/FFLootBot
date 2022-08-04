@@ -6,7 +6,7 @@ from Bot.Team import Team
 
 class PlayerView(discord.ui.View):
     def __init__(self, player: Player, role_select_callback: callable, bis_callback: callable,
-                 purchase_callback: callable):
+                 purchase_callback: callable, leave_team_callback: callable):
         super().__init__(timeout=None)
         select_player_role = discord.ui.Select(
             options=[
@@ -46,3 +46,10 @@ class PlayerView(discord.ui.View):
         add_item_button.callback = purchase_callback
         self.add_item(add_item_button)
 
+        leave_team_button = discord.ui.Button(
+            label="Leave Team",
+            style=discord.ButtonStyle.danger,
+            custom_id="LEAVE_TEAM_BUTTON",
+        )
+        leave_team_button.callback = leave_team_callback
+        self.add_item(leave_team_button)

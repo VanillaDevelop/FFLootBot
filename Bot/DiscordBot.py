@@ -24,7 +24,7 @@ from Bot.Views.PlayerView import PlayerView
 COMMAND_PREFIX = '!'
 BIS_TIMEOUT = 600
 PURCHASE_TIMEOUT = 180
-LOAD_CONFIG_FILE = True
+LOAD_CONFIG_FILE = False
 
 
 class DiscordBot:
@@ -49,12 +49,13 @@ class DiscordBot:
                     team = self.team_manager.teams[team_id]
                     self.client.add_view(ManagementView(team,
                                                         self.__handle_loot_priority_click__,
-                                                        self.__assign_loot_callback__))
+                                                        self.__assign_loot_callback__,
+                                                        self.__handle_disband_team__))
                     for player_id in team.members:
                         player = team.members[player_id]
                         self.client.add_view(PlayerView(player,
                                                         self.__handle_role_click__, self.__bis_callback__,
-                                                        self.__purchase_callback__))
+                                                        self.__purchase_callback__, self.__handle_leave_team__))
 
         @self.client.command()
         async def info(ctx):
@@ -81,19 +82,21 @@ class DiscordBot:
             player.player_name = player_name
 
             self.client.add_view(ManagementView(team, self.__handle_loot_priority_click__,
-                                                self.__assign_loot_callback__))
+                                                self.__assign_loot_callback__,
+                                                self.__handle_disband_team__))
             self.client.add_view(PlayerView(team.members[ctx.author.id],
                                             self.__handle_role_click__, self.__bis_callback__,
-                                            self.__purchase_callback__))
+                                            self.__purchase_callback__, self.__handle_leave_team__))
 
             await ctx.send(embed=ManagementEmbed(team, COMMAND_PREFIX, uuid),
                            view=ManagementView(team, self.__handle_loot_priority_click__,
-                                               self.__assign_loot_callback__))
+                                               self.__assign_loot_callback__,
+                                               self.__handle_disband_team__))
 
             member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
                                             view=PlayerView(team.members[ctx.author.id],
                                                             self.__handle_role_click__, self.__bis_callback__,
-                                                            self.__purchase_callback__))
+                                                            self.__purchase_callback__, self.__handle_leave_team__))
             self.team_manager.team_members[member_message.id] = uuid
             player.player_message_id = member_message.id
             player.player_author_id = ctx.author.id
@@ -109,7 +112,7 @@ class DiscordBot:
         await self.update_all_member_embeds(team)
         await interaction.response.edit_message(
             view=PlayerView(team.members[interaction.user.id], self.__handle_role_click__, self.__bis_callback__,
-                            self.__purchase_callback__))
+                            self.__purchase_callback__, self.__handle_leave_team__))
 
     async def update_all_member_embeds(self, team: Team):
         for member in team.members:
@@ -124,7 +127,8 @@ class DiscordBot:
         team.loot_priority = LootPriority[priority]
         await interaction.response.edit_message(
             view=ManagementView(team,
-                                self.__handle_loot_priority_click__, self.__assign_loot_callback__))
+                                self.__handle_loot_priority_click__, self.__assign_loot_callback__,
+                                self.__handle_disband_team__))
         await self.update_all_member_embeds(team)
 
     async def __handle_bis_finish__(self, interaction: discord.Interaction, bis, player_message_id: int):
@@ -226,7 +230,7 @@ class DiscordBot:
         await interaction.message.delete()
 
     async def __purchase_callback__(self, interaction: discord.Interaction):
-        team = self.team_manager.teams[self.team_manager.team_leaders[interaction.message.id]]
+        team = self.team_manager.teams[self.team_manager.team_leaders[interaction.user.id]]
         if team.members[interaction.user.id].is_adding_item:
             await interaction.response.send_message("You are already adding an item. Please use the existing "
                                                     "interface.", delete_after=5)
@@ -268,6 +272,37 @@ class DiscordBot:
         team.members[interaction.user.id].is_adding_item = False
         await interaction.response.send_message("Action cancelled.", delete_after=5)
         await interaction.message.delete()
+
+    async def __handle_leave_team__(self, interaction: discord.Interaction):
+        team = self.team_manager.teams[self.team_manager.team_members[interaction.message.id]]
+        if (interaction.user.id in self.team_manager.team_leaders
+                and self.team_manager.teams[self.team_manager.team_leaders[interaction.user.id]] == team):
+            await interaction.response.send_message("You cannot leave your own team. Please disband the "
+                                                    "team if you wish to abandon it.", delete_after=5)
+            return
+        team.members.pop(interaction.user.id)
+        self.team_manager.team_members.pop(interaction.message.id)
+        await interaction.response.send_message("You have left the team.", delete_after=10)
+        await interaction.message.delete()
+        await self.update_all_member_embeds(team)
+
+    async def __handle_disband_team__(self, interaction: discord.Interaction):
+        team = self.team_manager.teams[self.team_manager.team_leaders[interaction.user.id]]
+        for member in team.members:
+            # delete player view
+            author = team.members[member].player_author_id
+            message_id = team.members[member].player_message_id
+            channel = await self.client.fetch_user(author)
+            message = await channel.fetch_message(message_id)
+            await message.delete()
+            # delete message index
+            self.team_manager.team_members.pop(message_id)
+        # delete leader index and message, then delete team
+        team_id = self.team_manager.team_leaders[interaction.user.id]
+        self.team_manager.team_leaders.pop(interaction.user.id)
+        await interaction.message.delete()
+        self.team_manager.teams.pop(team_id)
+        await interaction.response.send_message("Team disbanded.", delete_after=10)
 
     def on_disconnect(self):
         with open('TeamData.obj', 'wb') as f:

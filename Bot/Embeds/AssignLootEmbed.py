@@ -1,6 +1,6 @@
 import discord
 
-from Bot.Player import Item
+from Bot.Player import Item, RaidUpgrade
 from Bot.Team import LootPriority
 
 
@@ -23,5 +23,5 @@ class AssignLootEmbed(discord.Embed):
                 else:
                     for i, (player, role, upgrade, pity) in enumerate(team.gear_priority(item), 1):
                         priolist += f"{i}. {team.members[player].player_name} ({role.name.capitalize()}): " \
-                                    f"{LootPriority(upgrade).name} (Pity: {pity})\n"
+                                    f"{str(RaidUpgrade(upgrade))} (Pity: {pity})\n"
                 self.add_field(name="Suggested priority", value=priolist)

@@ -3,7 +3,8 @@ from Bot.Team import LootPriority, Team
 
 
 class ManagementView(discord.ui.View):
-    def __init__(self, team: Team, loot_select_callback: callable, loot_assign_callback: callable):
+    def __init__(self, team: Team, loot_select_callback: callable, loot_assign_callback: callable,
+                 disband_team_callback: callable):
         super().__init__(timeout=None)
         select_loot_distribution = discord.ui.Select(
             options=[
@@ -39,3 +40,11 @@ class ManagementView(discord.ui.View):
         )
         add_loot_button.callback = loot_assign_callback
         self.add_item(add_loot_button)
+
+        disband_team_button = discord.ui.Button(
+            label="Disband Team",
+            style=discord.ButtonStyle.danger,
+            custom_id="DISBAND_TEAM_BUTTON",
+        )
+        disband_team_button.callback = disband_team_callback
+        self.add_item(disband_team_button)
