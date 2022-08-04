@@ -25,7 +25,8 @@ class Team:
             plist = list(map(
                 lambda p: (p, self.members[p].role, self.members[p].gear_upgrades[gear_type-1], self.members[p].pity),
                 [member for member in self.members
-                 if self.members[member].gear_upgrades[gear_type-1] != RaidUpgrade.NO]))
+                 if self.members[member].gear_upgrades[gear_type-1] != RaidUpgrade.NO
+                 and (gear_type - 1) not in self.members[member].gear_owned]))
             if self.loot_priority == LootPriority.DPS:
                 plist.sort(key=lambda p: (-p[1].value, p[2]))
             elif self.loot_priority == LootPriority.EQUAL:
