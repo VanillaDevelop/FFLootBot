@@ -37,11 +37,13 @@ class Team:
         if gear_type == 98:
             plist = list(map(lambda p: (p, self.members[p].role,
                                         self.members[p].twines_needed - self.members[p].twines_got),
-                             self.members))
+                             [member for member in self.members
+                              if self.members[member].twines_needed - self.members[member].twines_got > 0]))
         elif gear_type == 99:
             plist = list(map(
                 lambda p: (p, self.members[p].role, self.members[p].coatings_needed - self.members[p].coatings_got),
-                self.members))
+                [member for member in self.members
+                 if self.members[member].coatings_needed - self.members[member].coatings_got > 0]))
         if self.loot_priority == LootPriority.DPS:
             plist.sort(key=lambda p: (-p[1].value, p[2]))
         else:

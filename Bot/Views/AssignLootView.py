@@ -32,12 +32,27 @@ class AssignLootView(discord.ui.View):
 
         self.add_item(dropdown_items)
 
-        dropdown_players = discord.ui.Select()
-        for player in self.team.members:
-            dropdown_players.add_option(label=team.members[player].player_name, value=str(player),
-                                        default=self.player == player)
-        dropdown_players.callback = lambda interaction: self.change_player(interaction, dropdown_players.values[0])
-        self.add_item(dropdown_players)
+        if item is None:
+            eligible_players = []
+        elif item < 98:
+            eligible_players = [player for player in self.team.members
+                                if team.members[player].gear_upgrades[item-1] != RaidUpgrade.NO
+                                and (item-1) not in team.members[player].gear_owned]
+        elif item == 98:
+            eligible_players = [player for player in self.team.members
+                                if team.members[player].twines_needed - team.members[player].twines_got > 0]
+        elif item == 99:
+            eligible_players = [player for player in self.team.members
+                                if team.members[player].coatings_needed - team.members[player].coatings_got > 0]
+        if item is not None and len(eligible_players) > 0:
+            dropdown_players = discord.ui.Select(
+                placeholder="Select an eligible player."
+            )
+            for player in eligible_players:
+                dropdown_players.add_option(label=team.members[player].player_name, value=str(player),
+                                            default=self.player == player)
+            dropdown_players.callback = lambda interaction: self.change_player(interaction, dropdown_players.values[0])
+            self.add_item(dropdown_players)
 
         btn_cancel = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.danger)
         btn_cancel.callback = lambda ctx: self.cancel_callback(ctx)
