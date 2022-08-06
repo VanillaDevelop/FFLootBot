@@ -35,21 +35,21 @@ class AssignLootView(discord.ui.View):
         if item is None:
             eligible_players = []
         elif item < 98:
-            eligible_players = [player for player in self.team.members
-                                if team.members[player].gear_upgrades[item-1] != RaidUpgrade.NO
-                                and (item-1) not in team.members[player].gear_owned]
+            eligible_players = [player for player in self.team.__members
+                                if team.__members[player].gear_upgrades[item - 1] != RaidUpgrade.NO
+                                and (item-1) not in team.__members[player].gear_owned]
         elif item == 98:
-            eligible_players = [player for player in self.team.members
-                                if team.members[player].twines_needed - team.members[player].twines_got > 0]
+            eligible_players = [player for player in self.team.__members
+                                if team.__members[player].twines_needed - team.__members[player].twines_got > 0]
         elif item == 99:
-            eligible_players = [player for player in self.team.members
-                                if team.members[player].coatings_needed - team.members[player].coatings_got > 0]
+            eligible_players = [player for player in self.team.__members
+                                if team.__members[player].coatings_needed - team.__members[player].coatings_got > 0]
         if item is not None and len(eligible_players) > 0:
             dropdown_players = discord.ui.Select(
                 placeholder="Select an eligible player."
             )
             for player in eligible_players:
-                dropdown_players.add_option(label=team.members[player].player_name, value=str(player),
+                dropdown_players.add_option(label=team.__members[player].__player_name, value=str(player),
                                             default=self.player == player)
             dropdown_players.callback = lambda interaction: self.change_player(interaction, dropdown_players.values[0])
             self.add_item(dropdown_players)

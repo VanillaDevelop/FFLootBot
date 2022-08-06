@@ -13,17 +13,17 @@ class PlayerView(discord.ui.View):
                 discord.SelectOption(
                     label="Role: Tank",
                     value=Role.TANK.name,
-                    default=player.role == Role.TANK
+                    default=player.get_player_name() == Role.TANK
                 ),
                 discord.SelectOption(
                     label="Role: Healer",
                     value=Role.HEALER.name,
-                    default=player.role == Role.HEALER
+                    default=player.get_player_name() == Role.HEALER
                 ),
                 discord.SelectOption(
                     label="Role: DPS",
                     value=Role.DPS.name,
-                    default=player.role == Role.DPS
+                    default=player.get_player_name() == Role.DPS
                 )],
             placeholder="Select your role.",
             custom_id="SELECT_PLAYER_ROLE",)

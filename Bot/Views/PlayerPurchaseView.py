@@ -24,7 +24,7 @@ class PlayerPurchaseView(discord.ui.View):
     def add_item_options(self):
         for (i, slot) in enumerate(Item):
             if self.player.gear_upgrades[i] != RaidUpgrade.NO and i not in self.player.gear_owned:
-                btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}", style=discord.ButtonStyle.success)
+                btn_slot = discord.ui.Button(label=f"{slot.__name.capitalize()}", style=discord.ButtonStyle.success)
                 btn_slot.callback = lambda ctx, e=i: self.purchase_callback(ctx, e, self.player_message_id)
                 self.add_item(btn_slot)
         if self.player.twines_needed - self.player.twines_got > 0:

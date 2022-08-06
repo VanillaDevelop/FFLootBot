@@ -12,16 +12,16 @@ class AssignLootEmbed(discord.Embed):
                            "item added to their owned gear, and all other eligible players will obtain pity according" \
                            " to the value of the item. **This message will automatically be deleted after 3 minutes.**"
 
-        if item is not None and team.loot_priority != LootPriority.NONE:
+        if item is not None and team.__loot_priority != LootPriority.NONE:
             priolist = ""
             prio = team.gear_priority(item)
             if len(prio) > 0:
                 if item >= 98:
                     for i, (player, role, missing) in enumerate(team.gear_priority(item), 1):
-                        priolist += f"{i}. {team.members[player].player_name} ({role.name.capitalize()}): " \
+                        priolist += f"{i}. {team.__members[player].__player_name} ({role.__name.capitalize()}): " \
                                     f"Needs {missing}\n"
                 else:
                     for i, (player, role, upgrade, pity) in enumerate(team.gear_priority(item), 1):
-                        priolist += f"{i}. {team.members[player].player_name} ({role.name.capitalize()}): " \
+                        priolist += f"{i}. {team.__members[player].__player_name} ({role.__name.capitalize()}): " \
                                     f"{str(RaidUpgrade(upgrade))} (Pity: {pity})\n"
                 self.add_field(name="Suggested priority", value=priolist)

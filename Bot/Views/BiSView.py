@@ -31,7 +31,7 @@ class BiSView(discord.ui.View):
 
     def add_all_items(self):
         for (i, slot) in enumerate(Item):
-            btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}: {str(RaidUpgrade(self.bis_items[i]))}",
+            btn_slot = discord.ui.Button(label=f"{slot.__name.capitalize()}: {str(RaidUpgrade(self.bis_items[i]))}",
                                          style=discord.ButtonStyle.secondary)
             btn_slot.callback = lambda ctx, e=i: self.change_gear(ctx, e)
             self.add_item(btn_slot)

@@ -6,6 +6,12 @@ class Role(Enum):
     TANK = 2
     HEALER = 3
 
+    def __str__(self):
+        if self == Role.DPS:
+            return "DPS"
+        else:
+            return self.name.capitalize()
+
 
 class RaidUpgrade(IntEnum):
     NO = 1,
@@ -38,22 +44,46 @@ class Item(Enum):
     BRACELET = 9
     RING = 10
 
+    def __str__(self):
+        return self.name.capitalize()
+
 
 class Player:
-    def __init__(self):
-        self.role = Role.TANK
+    def __init__(self, player_name: str):
+        self.__role = Role.TANK
         self.gear_upgrades = [RaidUpgrade.NO] * len(Item)
         self.gear_owned = []
         self.is_editing_bis = False
         self.is_adding_item = False
         self.player_message_id = None
         self.player_author_id = None
-        self.player_name = None
+        self.__player_name = player_name
         self.twines_needed = 0
         self.coatings_needed = 0
         self.twines_got = 0
         self.coatings_got = 0
         self.pity = 0
+
+    def get_remaining_coating_count(self):
+        return self.coatings_needed - self.coatings_got
+
+    def get_remaining_twine_count(self):
+        return self.twines_needed - self.twines_got
+
+    def get_player_name(self) -> str:
+        return self.__player_name
+
+    def get_player_role(self) -> Role:
+        return self.__role
+
+    def set_player_role(self, role: Role):
+        self.__role = role
+
+    def get_author_id(self) -> int:
+        return self.player_author_id
+
+    def get_message_id(self) -> int:
+        return self.player_message_id
 
     def update_twines_and_coatings(self):
         self.twines_needed = len([gear for gear in self.gear_upgrades[1:6] if gear == RaidUpgrade.NO])
