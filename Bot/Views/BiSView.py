@@ -9,7 +9,7 @@ class BiSView(discord.ui.View):
     def __init__(self, player: Player, bis_finish_callback: callable,
                  bis_cancel_callback: callable, timeout: int, player_message_id: int):
         super().__init__()
-        self.bis_items = player.gear_upgrades.copy()
+        self.bis_items = player.__gear_upgrades.copy()
         self.player = player
         self.finish_callback = bis_finish_callback
         self.cancel_callback = bis_cancel_callback
@@ -20,7 +20,7 @@ class BiSView(discord.ui.View):
 
     async def timeout_func(self):
         await asyncio.sleep(self.timeout)
-        self.player.is_editing_bis = False
+        self.player.__is_editing_bis = False
         self.disable_all_items()
 
     async def change_gear(self, interaction: discord.Interaction, slot: int):

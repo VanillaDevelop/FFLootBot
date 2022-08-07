@@ -18,20 +18,20 @@ class PlayerPurchaseView(discord.ui.View):
 
     async def timeout_func(self):
         await asyncio.sleep(self.timeout)
-        self.player.is_adding_item = False
+        self.player.__is_adding_item = False
         self.disable_all_items()
 
     def add_item_options(self):
         for (i, slot) in enumerate(Item):
-            if self.player.gear_upgrades[i] != RaidUpgrade.NO and i not in self.player.gear_owned:
+            if self.player.__gear_upgrades[i] != RaidUpgrade.NO and i not in self.player.__gear_owned:
                 btn_slot = discord.ui.Button(label=f"{slot.__name.capitalize()}", style=discord.ButtonStyle.success)
                 btn_slot.callback = lambda ctx, e=i: self.purchase_callback(ctx, e, self.player_message_id)
                 self.add_item(btn_slot)
-        if self.player.twines_needed - self.player.twines_got > 0:
+        if self.player.__twines_needed - self.player.__twines_got > 0:
             btn_slot = discord.ui.Button(label="Twine", style=discord.ButtonStyle.success)
             btn_slot.callback = lambda ctx: self.purchase_callback(ctx, 98, self.player_message_id)
             self.add_item(btn_slot)
-        if self.player.coatings_needed - self.player.coatings_got > 0:
+        if self.player.__coatings_needed - self.player.__coatings_got > 0:
             btn_slot = discord.ui.Button(label="Coating", style=discord.ButtonStyle.success)
             btn_slot.callback = lambda ctx: self.purchase_callback(ctx, 99, self.player_message_id)
             self.add_item(btn_slot)

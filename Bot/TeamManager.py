@@ -21,10 +21,10 @@ class TeamManager:
         self.__team_leaders[author_id] = team_id
         return self.get_team_by_leader(author_id)
 
-    # assigns a message id to a team
-    def map_message_id_to_team(self, message_id: str, team: Team, player: Player) -> None:
+    # assigns a message id to a team, and sets author id and message id in the player
+    def map_message_id_to_team(self, author_id: int, message_id: int, team: Team, player: Player) -> None:
         self.__team_members[message_id] = team.get_uuid()
-        player.player_message_id = message_id
+        player.link_message(message_id, author_id)
 
     # if a team exists from given author ID, return the team
     def get_team_by_leader(self, author_id: int) -> Optional[Team]:
@@ -56,6 +56,6 @@ class TeamManager:
     def delete_team(self, team: Team, leader: Player):
         for member in team.get_all_member_ids():
             player = team.get_member_by_author_id(member)
-            del self.__team_members[player.player_message_id]
-        del self.__team_leaders[leader.player_author_id]
+            del self.__team_members[player.__player_message_id]
+        del self.__team_leaders[leader.__player_author_id]
         self.__teams.pop(team.get_uuid())

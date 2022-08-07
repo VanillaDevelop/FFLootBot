@@ -36,14 +36,14 @@ class AssignLootView(discord.ui.View):
             eligible_players = []
         elif item < 98:
             eligible_players = [player for player in self.team.__members
-                                if team.__members[player].gear_upgrades[item - 1] != RaidUpgrade.NO
-                                and (item-1) not in team.__members[player].gear_owned]
+                                if team.__members[player].__gear_upgrades[item - 1] != RaidUpgrade.NO
+                                and (item-1) not in team.__members[player].__gear_owned]
         elif item == 98:
             eligible_players = [player for player in self.team.__members
-                                if team.__members[player].twines_needed - team.__members[player].twines_got > 0]
+                                if team.__members[player].__twines_needed - team.__members[player].__twines_got > 0]
         elif item == 99:
             eligible_players = [player for player in self.team.__members
-                                if team.__members[player].coatings_needed - team.__members[player].coatings_got > 0]
+                                if team.__members[player].__coatings_needed - team.__members[player].__coatings_got > 0]
         if item is not None and len(eligible_players) > 0:
             dropdown_players = discord.ui.Select(
                 placeholder="Select an eligible player."
@@ -64,7 +64,7 @@ class AssignLootView(discord.ui.View):
 
     async def timeout_func(self):
         await asyncio.sleep(self.timeout)
-        self.team.is_assigning_loot = False
+        self.team.__is_assigning_loot = False
         self.disable_all_items()
 
     async def change_item(self, interaction: discord.Interaction, item):
