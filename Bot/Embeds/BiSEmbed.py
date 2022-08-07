@@ -2,10 +2,11 @@ import discord
 from Bot.Team import Team
 
 
+# embed for setting up BiS
 class BiSEmbed(discord.Embed):
     def __init__(self, team: Team):
         super().__init__()
-        self.title = f"Best in Slot settings for Team {team.__name}"
+        self.title = f"Best in Slot settings for Team {team.get_team_name()}"
         self.description = "You may set your BiS by clicking the buttons below to select the appropriate " \
                            "upgrade level for each gear slot, then click confirm to finish the process. " \
                            "See below for which level to select. **This message " \

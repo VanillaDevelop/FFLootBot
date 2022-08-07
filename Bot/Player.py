@@ -109,6 +109,9 @@ class Player:
         else:
             self.__gear_owned.append(item-1)
 
+    def get_upgrade_level(self, item: Item) -> RaidUpgrade:
+        return self.__gear_upgrades[item.value-1]
+
     def link_message(self, message_id: int, author_id: int):
         self.__player_message_id = message_id
         self.__player_author_id = author_id

@@ -1,6 +1,7 @@
 import discord
 
 
+# embed for info command
 class InfoEmbed(discord.Embed):
     def __init__(self, command_prefix: str):
         super().__init__()

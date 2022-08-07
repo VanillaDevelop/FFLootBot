@@ -3,6 +3,7 @@ import discord
 from Bot.Team import Team
 
 
+# embed for team management
 class ManagementEmbed(discord.Embed):
     def __init__(self, team: Team, command_prefix: str):
         super().__init__()

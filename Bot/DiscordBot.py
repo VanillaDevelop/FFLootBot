@@ -289,8 +289,8 @@ class DiscordBot:
             await interaction.response.send_message("You are already adding an item. Please use the existing "
                                                     "interface.", delete_after=5)
         elif (len(player.get_unowned_gear()) == 0
-                and player.get_remaining_twine_count() == 0
-                and player.get_remaining_coating_count() == 0):
+                and player.get_remaining_twine_count() <= 0
+                and player.get_remaining_coating_count() <= 0):
             await interaction.response.send_message("There is no gear for you to log. Set up your BiS first.",
                                                     delete_after=5)
         else:

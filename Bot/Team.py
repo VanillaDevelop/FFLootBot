@@ -15,7 +15,7 @@ class LootPriority(Enum):
 
 class Team:
     def __init__(self, team_id: str, team_name: str):
-        self.__members = {}
+        self.__members = dict[int, Player]()
         self.__name = team_name
         self.__uuid = team_id
         self.__loot_priority = LootPriority.NONE
@@ -50,6 +50,14 @@ class Team:
 
     def set_is_assigning_loot(self, is_assigning_loot: bool) -> None:
         self.__is_assigning_loot = is_assigning_loot
+
+    def number_of_item_needed(self, item: int) -> int:
+        if item == 98:
+            return sum([self.__members[member].get_remaining_twine_count() for member in self.__members])
+        elif item == 99:
+            return sum([self.__members[member].get_remaining_coating_count() for member in self.__members])
+        else:
+            return sum([1 for member in self.__members if self.__members[member].needs_item(Item(item))])
 
     def give_pity(self, item: Item, except_player: Player):
         for member_id in self.__members:

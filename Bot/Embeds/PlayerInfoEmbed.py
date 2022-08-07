@@ -1,9 +1,10 @@
 import discord
 
-from Bot.Player import Role, Player, RaidUpgrade, Item
+from Bot.Player import Player, RaidUpgrade, Item
 from Bot.Team import Team
 
 
+# embed for player info
 class PlayerInfoEmbed(discord.Embed):
     def __init__(self, team: Team, player: Player):
         super().__init__()
@@ -16,33 +17,30 @@ class PlayerInfoEmbed(discord.Embed):
             teaminfo += f"\n{player.get_player_name()} ({str(player.get_player_role())})"
         teaminfo += "\n\n**Settings**"
         teaminfo += f"\nLoot priority rule: {str(team.get_loot_priority())}"
+
         # add total items needed
         teaminfo += "\n\n**Gear Needed**"
-        for (i, item) in enumerate(Item):
-            c = len([1 for member in team.get_all_member_ids()
-                     if team.get_member_by_author_id(member).get_unowned_gear()[i] != RaidUpgrade.NO])
-            if c > 0:
-                teaminfo += f"\n{str(item)}: {c}"
+        for item in Item:
+            count = team.number_of_item_needed(item)
+            if count > 0:
+                teaminfo += f"\n{str(item)}: {count}"
         # add total twines and coatings needed
-        twines = [team.get_member_by_author_id(member).get_remaining_twine_count()
-                  for member in team.get_all_member_ids()]
-        coatings = [team.get_member_by_author_id(member).get_remaining_coating_count()
-                    for member in team.get_all_member_ids()]
-        if sum(twines) > 0:
+        twines = team.number_of_item_needed(98)
+        coatings = team.number_of_item_needed(99)
+        if twines > 0:
             teaminfo += f"\nTwines: {sum(twines)} "
-        if sum(coatings) > 0:
+        if coatings > 0:
             teaminfo += f"\nCoatings: {sum(coatings)}"
-
         self.add_field(name="Team Info",
                        value=teaminfo)
 
-        self_info = f"Name: {player.get_player_name()}" \
-                    f"\nRole: {player.get_player_role()}" \
-                    f"\n\n**Gear you need**"
-        for (i, upgrade) in enumerate(Item):
-            item = player.get_unowned_gear()[i]
-            if item != RaidUpgrade.NO:
-                self_info += f"\n{str(upgrade)} ({str(RaidUpgrade(item))})"
+        # add player info
+        self_info = (f"Name: {player.get_player_name()}"
+                     f"\nRole: {player.get_player_role()}"
+                     f"\n\n**Gear you need**")
+        for item in Item:
+            if player.needs_item(item):
+                self_info += f"\n{str(item)} ({str(player.get_upgrade_level(item))})"
         if player.get_remaining_twine_count() > 0:
             self_info += f"\nTwines: {player.get_remaining_twine_count()}"
         if player.get_remaining_coating_count() > 0:

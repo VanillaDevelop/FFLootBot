@@ -8,11 +8,11 @@ import uuid
 class TeamManager:
     def __init__(self):
         # maps team ids to teams
-        self.__teams = {}
+        self.__teams = dict[str, Team]()
         # maps author IDs to team IDs
-        self.__team_leaders = {}
+        self.__team_leaders = dict[int, str]()
         # maps message IDs to team IDs
-        self.__team_members = {}
+        self.__team_members = dict[int, str]()
 
     # creates a team and returns the corresponding team ID
     def create_team(self, team_name: str, author_id: int) -> Team:
