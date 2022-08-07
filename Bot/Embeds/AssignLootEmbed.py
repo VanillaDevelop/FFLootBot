@@ -18,12 +18,11 @@ class AssignLootEmbed(discord.Embed):
             prio = team.gear_priority(item)
             if len(prio) > 0:
                 if item >= 98:
-                    for i, (member_id, role, missing) in enumerate(team.gear_priority(item), 1):
-                        player = team.get_member_by_author_id(member_id)
-                        priolist += f"{i}. {player.get_player_name()} ({str(role)}): Needs {missing}\n"
+                    for i, (member, missing) in enumerate(team.gear_priority(item), 1):
+                        priolist += (f"{i}. {member.get_player_name()} ({str(member.get_player_role())}): " 
+                                     f"Needs {missing}\n")
                 else:
-                    for i, (member_id, role, upgrade, pity) in enumerate(team.gear_priority(item), 1):
-                        player = team.get_member_by_author_id(member_id)
-                        priolist += (f"{i}. {player.get_player_name()} ({str(role)}): "
+                    for i, (member, upgrade, pity) in enumerate(team.gear_priority(item), 1):
+                        priolist += (f"{i}. {member.get_player_name()} ({str(member.get_player_role())}): "
                                      f"{str(RaidUpgrade(upgrade))} (Pity: {pity})\n")
                 self.add_field(name="Suggested Priority", value=priolist)

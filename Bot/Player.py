@@ -125,6 +125,9 @@ class Player:
     def add_pity(self, pity: int):
         self.__pity += pity
 
+    def get_pity(self):
+        return self.__pity
+
     def update_twines_and_coatings(self):
         self.__twines_needed = len([gear for gear in self.__gear_upgrades[1:6] if gear == RaidUpgrade.NO])
         # assume 1 coating always needed for second ring

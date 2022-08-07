@@ -56,6 +56,6 @@ class TeamManager:
     def delete_team(self, team: Team, leader: Player):
         for member in team.get_all_member_ids():
             player = team.get_member_by_author_id(member)
-            del self.__team_members[player.__player_message_id]
-        del self.__team_leaders[leader.__player_author_id]
+            del self.__team_members[player.get_message_id()]
+        del self.__team_leaders[leader.get_author_id()]
         self.__teams.pop(team.get_uuid())
