@@ -269,7 +269,7 @@ class DiscordBot:
             player.give_item(item.value)
             team.give_pity(item, player)
             await interaction.response.send_message(f"{player.get_player_name()} "
-                                                    f"has been assigned the {item.name} piece.",
+                                                    f"has been assigned the {str(item)} piece.",
                                                     delete_after=5)
         await self.update_all_member_embeds(team)
         await interaction.message.delete()

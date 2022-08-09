@@ -24,7 +24,7 @@ class PlayerPurchaseView(TemporaryView):
         for slot in Item:
             if self.player.needs_item(slot):
                 btn_slot = discord.ui.Button(label=f"{str(slot)}", style=discord.ButtonStyle.success)
-                btn_slot.callback = lambda ctx, e=slot: self.purchase_callback(ctx, slot.value, self.player_message_id)
+                btn_slot.callback = lambda ctx, e=slot.value: self.purchase_callback(ctx, e, self.player_message_id)
                 self.add_item(btn_slot)
         if self.player.get_remaining_twine_count() > 0:
             btn_slot = discord.ui.Button(label="Twine", style=discord.ButtonStyle.success)

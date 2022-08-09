@@ -6,6 +6,7 @@ import discord
 # a subclass of the pycord View which is deleted after a fixed amount of seconds
 class TemporaryView(discord.ui.View):
     def __init__(self, timeout: int, timeout_function: callable):
+        super().__init__()
         self.timeout = timeout
         self.timeout_function = timeout_function
         asyncio.create_task(self.timeout_func())

@@ -28,9 +28,9 @@ class PlayerInfoEmbed(discord.Embed):
         twines = team.number_of_item_needed(98)
         coatings = team.number_of_item_needed(99)
         if twines > 0:
-            teaminfo += f"\nTwines: {sum(twines)} "
+            teaminfo += f"\nTwines: {twines} "
         if coatings > 0:
-            teaminfo += f"\nCoatings: {sum(coatings)}"
+            teaminfo += f"\nCoatings: {coatings}"
         self.add_field(name="Team Info",
                        value=teaminfo)
 

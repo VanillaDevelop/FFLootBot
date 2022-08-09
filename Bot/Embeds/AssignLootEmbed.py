@@ -26,3 +26,7 @@ class AssignLootEmbed(discord.Embed):
                         priolist += (f"{i}. {member.get_player_name()} ({str(member.get_player_role())}): "
                                      f"{str(RaidUpgrade(upgrade))} (Pity: {pity})\n")
                 self.add_field(name="Suggested Priority", value=priolist)
+
+            else:
+                self.add_field(name="Suggested Priority", value="This item cannot be assigned to a player, as no player"
+                                                                "has indicated that they need this item.")
