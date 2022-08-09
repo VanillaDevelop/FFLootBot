@@ -1,56 +1,54 @@
-import asyncio
 import discord
 
 from Bot.Embeds.AssignLootEmbed import AssignLootEmbed
-from Bot.Player import Player, Item, RaidUpgrade
+from Bot.Player import Item, RaidUpgrade
 from Bot.Team import Team
 
+from Bot.Views.TemporaryView import TemporaryView
 
-class AssignLootView(discord.ui.View):
+
+# view for assigning loot to team members
+class AssignLootView(TemporaryView):
     def __init__(self, team: Team, assign_callback: callable, cancel_callback: callable, timeout: int,
                  player_message_id: int, item: int = None, player: int = None):
-        super().__init__()
+        super().__init__(timeout, lambda: self.timeout_func)
         self.team = team
         self.assign_callback = assign_callback
         self.cancel_callback = cancel_callback
-        self.timeout = timeout
         self.player_message_id = player_message_id
         self.item = item
         self.player = player
-        asyncio.create_task(self.timeout_func())
 
         dropdown_items = discord.ui.Select()
         dropdown_items.custom_id = "SELECT_ITEM"
         for slot in Item:
-            dropdown_items.add_option(label=slot.name.capitalize(), value=slot.name,
+            dropdown_items.add_option(label=str(slot), value=slot.name,
                                       default=self.item is not None and self.item == slot.value)
         dropdown_items.add_option(label="Twine", value=str(98),
                                   default=self.item == 98)
         dropdown_items.add_option(label="Coating", value=str(99),
                                   default=self.item == 99)
         dropdown_items.callback = lambda interaction: self.change_item(interaction, dropdown_items.values[0])
-
         self.add_item(dropdown_items)
 
         if item is None:
             eligible_players = []
-        elif item < 98:
-            eligible_players = [player for player in self.team.__members
-                                if team.__members[player].__gear_upgrades[item - 1] != RaidUpgrade.NO
-                                and (item-1) not in team.__members[player].__gear_owned]
         elif item == 98:
-            eligible_players = [player for player in self.team.__members
-                                if team.__members[player].__twines_needed - team.__members[player].__twines_got > 0]
+            eligible_players = [player_id for player_id in self.team.get_all_member_ids()
+                                if team.get_member_by_author_id(player_id).get_remaining_twine_count() > 0]
         elif item == 99:
-            eligible_players = [player for player in self.team.__members
-                                if team.__members[player].__coatings_needed - team.__members[player].__coatings_got > 0]
+            eligible_players = [player_id for player_id in self.team.get_all_member_ids()
+                                if team.get_member_by_author_id(player_id).get_remaining_coating_count() > 0]
+        else:
+            eligible_players = [player_id for player_id in self.team.get_all_member_ids()
+                                if team.get_member_by_author_id(player_id).needs_item(Item(item))]
         if item is not None and len(eligible_players) > 0:
             dropdown_players = discord.ui.Select(
                 placeholder="Select an eligible player."
             )
             for player in eligible_players:
-                dropdown_players.add_option(label=team.__members[player].__player_name, value=str(player),
-                                            default=self.player == player)
+                dropdown_players.add_option(label=team.get_member_by_author_id(player).get_player_name(),
+                                            value=str(player), default=self.player == player)
             dropdown_players.callback = lambda interaction: self.change_player(interaction, dropdown_players.values[0])
             self.add_item(dropdown_players)
 
@@ -62,11 +60,12 @@ class AssignLootView(discord.ui.View):
         btn_assign.callback = lambda ctx: self.assign_callback(ctx, self.item, self.player)
         self.add_item(btn_assign)
 
+    # function called when this view times out
     async def timeout_func(self):
-        await asyncio.sleep(self.timeout)
         self.team.__is_assigning_loot = False
         self.disable_all_items()
 
+    # callback when the item dropdown is changed
     async def change_item(self, interaction: discord.Interaction, item):
         if item == "98" or item == "99":
             self.item = int(item)
@@ -78,6 +77,7 @@ class AssignLootView(discord.ui.View):
                                                                     self.player_message_id, self.item,
                                                                     self.player))
 
+    # callback when the player dropdown is changed
     async def change_player(self, interaction, player):
         self.player = int(player)
         await interaction.response.defer()

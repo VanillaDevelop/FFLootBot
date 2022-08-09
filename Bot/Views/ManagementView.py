@@ -2,6 +2,7 @@ import discord
 from Bot.Team import LootPriority, Team
 
 
+# view for team management
 class ManagementView(discord.ui.View):
     def __init__(self, team: Team, loot_select_callback: callable, loot_assign_callback: callable,
                  disband_team_callback: callable):

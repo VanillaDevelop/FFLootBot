@@ -97,6 +97,9 @@ class Player:
     def set_is_adding_item(self, is_adding_item: bool):
         self.__is_adding_item = is_adding_item
 
+    def get_bis(self) -> list[RaidUpgrade]:
+        return self.__gear_upgrades
+
     def update_bis(self, gear_upgrades: list):
         self.__gear_upgrades = gear_upgrades
         self.update_twines_and_coatings()

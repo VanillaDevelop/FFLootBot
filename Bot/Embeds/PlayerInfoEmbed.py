@@ -1,6 +1,6 @@
 import discord
 
-from Bot.Player import Player, RaidUpgrade, Item
+from Bot.Player import Player, Item
 from Bot.Team import Team
 
 
