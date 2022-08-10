@@ -1,9 +1,8 @@
 import discord
 
 from Bot.Embeds.AssignLootEmbed import AssignLootEmbed
-from Bot.Player import Item, RaidUpgrade
+from Bot.Player import Item
 from Bot.Team import Team
-
 from Bot.Views.TemporaryView import TemporaryView
 
 

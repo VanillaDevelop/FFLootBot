@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from Bot.Player import Player, Item, RaidUpgrade
+from Bot.Player import Player, Item
 
 
 class LootPriority(Enum):

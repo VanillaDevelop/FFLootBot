@@ -1,7 +1,6 @@
 import discord
 
 from Bot.Player import Player, Role
-from Bot.Team import Team
 
 
 class PlayerView(discord.ui.View):

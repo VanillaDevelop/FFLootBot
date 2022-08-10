@@ -1,7 +1,6 @@
 import discord
 
-from Bot.Player import Player, Item, RaidUpgrade
-
+from Bot.Player import Player, Item
 from Bot.Views.TemporaryView import TemporaryView
 
 
