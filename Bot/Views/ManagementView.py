@@ -2,6 +2,7 @@ import discord
 from Bot.Team import LootPriority, Team
 
 
+# view for team management
 class ManagementView(discord.ui.View):
     def __init__(self, team: Team, loot_select_callback: callable, loot_assign_callback: callable,
                  disband_team_callback: callable):
@@ -12,20 +13,20 @@ class ManagementView(discord.ui.View):
                     label="Loot Priority: DPS",
                     value=LootPriority.DPS.name,
                     description="Distribute loot to DPS first, according to highest stat gain.",
-                    default=team.loot_priority == LootPriority.DPS,
+                    default=team.get_loot_priority() == LootPriority.DPS,
                 ),
                 discord.SelectOption(
                     label="Loot Priority: Equal",
                     value=LootPriority.EQUAL.name,
                     description="Distribute loot to all players, "
                                 "prioritizing those who have received the least loot so far.",
-                    default=team.loot_priority == LootPriority.EQUAL
+                    default=team.get_loot_priority() == LootPriority.EQUAL
                 ),
                 discord.SelectOption(
                     label="Loot Priority: None",
                     value=LootPriority.NONE.name,
                     description="Do not prioritize loot distribution.",
-                    default=team.loot_priority == LootPriority.NONE
+                    default=team.get_loot_priority() == LootPriority.NONE
                 )],
             placeholder="Select loot distribution priority",
             custom_id="SELECT_LOOT_PRIORITY",)

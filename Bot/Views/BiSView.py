@@ -1,39 +1,28 @@
-import asyncio
-
 import discord
 
 from Bot.Player import Player, Item, RaidUpgrade
+from Bot.Views.TemporaryView import TemporaryView
 
 
-class BiSView(discord.ui.View):
+# view for setting up a player's BiS
+class BiSView(TemporaryView):
     def __init__(self, player: Player, bis_finish_callback: callable,
                  bis_cancel_callback: callable, timeout: int, player_message_id: int):
-        super().__init__()
-        self.bis_items = player.gear_upgrades.copy()
+        super().__init__(timeout, lambda: self.player.set_is_editing_bis(False))
+        self.bis_items = player.get_bis().copy()
         self.player = player
         self.finish_callback = bis_finish_callback
         self.cancel_callback = bis_cancel_callback
         self.add_all_items()
-        self.timeout = timeout
         self.player_message_id = player_message_id
-        asyncio.create_task(self.timeout_func())
 
-    async def timeout_func(self):
-        await asyncio.sleep(self.timeout)
-        self.player.is_editing_bis = False
-        self.disable_all_items()
-
-    async def change_gear(self, interaction: discord.Interaction, slot: int):
-        self.bis_items[slot] = 1 + (self.bis_items[slot]) % 4
-        self.clear_items()
-        self.add_all_items()
-        await interaction.response.edit_message(view=self)
-
+    # add a button for each item that when clicked increases the raid upgrade level for this item
     def add_all_items(self):
-        for (i, slot) in enumerate(Item):
-            btn_slot = discord.ui.Button(label=f"{slot.name.capitalize()}: {str(RaidUpgrade(self.bis_items[i]))}",
+        for slot in Item:
+            btn_slot = discord.ui.Button(label=f"{str(slot)}: "
+                                               f"{str(self.bis_items[slot.value-1])}",
                                          style=discord.ButtonStyle.secondary)
-            btn_slot.callback = lambda ctx, e=i: self.change_gear(ctx, e)
+            btn_slot.callback = lambda ctx, e=slot: self.change_gear(ctx, e)
             self.add_item(btn_slot)
 
         btn_cancel = discord.ui.Button(label="Cancel", row=4, style=discord.ButtonStyle.danger)
@@ -43,3 +32,11 @@ class BiSView(discord.ui.View):
         btn_finish = discord.ui.Button(label="Confirm", row=4, style=discord.ButtonStyle.success)
         btn_finish.callback = lambda ctx: self.finish_callback(ctx, self.bis_items, self.player_message_id)
         self.add_item(btn_finish)
+
+    # callback when user clicks one of the buttons
+    async def change_gear(self, interaction: discord.Interaction, slot: Item):
+        self.bis_items[slot.value-1] = RaidUpgrade(1 + (self.bis_items[slot.value-1]) % 4)
+        self.clear_items()
+        self.add_all_items()
+        await interaction.response.edit_message(view=self)
+

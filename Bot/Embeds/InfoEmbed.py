@@ -1,6 +1,7 @@
 import discord
 
 
+# embed for info command
 class InfoEmbed(discord.Embed):
     def __init__(self, command_prefix: str):
         super().__init__()
@@ -8,8 +9,8 @@ class InfoEmbed(discord.Embed):
         self.description = "This bot was created to simplify loot distribution during progression raiding and gearing."
         self.add_field(name="Creating a team", value="You may have one active team at any given time. "
                                                      f"To start the flow, DM me with **{command_prefix}"
-                                                     "create [name]**. You will be given"
-                                                     " an access code through which your team members can join "
+                                                     "create [team_name]**. You will be given"
+                                                     " an access code through which your team __members can join "
                                                      "the team. As the team owner, you are responsible for "
                                                      "supplying logs concerning the loot and specifying loot "
                                                      "distribution settings.", inline=False)
@@ -22,7 +23,7 @@ class InfoEmbed(discord.Embed):
                                                     "information prior to prog start.", inline=False)
         self.add_field(name="Loot distribution", value="When a team owner provides the log of a loot drop, "
                                                        "the bot will determine who benefits most from the "
-                                                       "item drop, and will inform all members accordingly. "
+                                                       "item drop, and will inform all __members accordingly. "
                                                        "The team owner may set different settings for the "
                                                        "loot distribution, such as gear funnel, dps prioritization"
                                                        ", or all equal.", inline=False)

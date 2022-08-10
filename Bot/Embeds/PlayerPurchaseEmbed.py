@@ -1,6 +1,7 @@
 import discord
 
 
+# embed for purchasing an item (player)
 class PlayerPurchaseEmbed(discord.Embed):
     def __init__(self):
         super().__init__()

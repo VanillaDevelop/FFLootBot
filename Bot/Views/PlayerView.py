@@ -1,7 +1,6 @@
 import discord
 
 from Bot.Player import Player, Role
-from Bot.Team import Team
 
 
 class PlayerView(discord.ui.View):
@@ -13,17 +12,17 @@ class PlayerView(discord.ui.View):
                 discord.SelectOption(
                     label="Role: Tank",
                     value=Role.TANK.name,
-                    default=player.role == Role.TANK
+                    default=player.get_player_role() == Role.TANK
                 ),
                 discord.SelectOption(
                     label="Role: Healer",
                     value=Role.HEALER.name,
-                    default=player.role == Role.HEALER
+                    default=player.get_player_role() == Role.HEALER
                 ),
                 discord.SelectOption(
                     label="Role: DPS",
                     value=Role.DPS.name,
-                    default=player.role == Role.DPS
+                    default=player.get_player_role() == Role.DPS
                 )],
             placeholder="Select your role.",
             custom_id="SELECT_PLAYER_ROLE",)
