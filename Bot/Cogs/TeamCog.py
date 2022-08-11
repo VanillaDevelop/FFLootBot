@@ -1,4 +1,5 @@
 import discord
+from discord import ChannelType
 
 from Bot.Embeds.AssignLootEmbed import AssignLootEmbed
 from Bot.Embeds.BiSEmbed import BiSEmbed
@@ -42,7 +43,14 @@ class TeamCog(discord.Cog):
     # event that runs when the "create [team_name] [player_name]" command is sent
     @discord.application_command()
     async def create(self, ctx, team_name: str, *, player_name: str):
-        if not isinstance(ctx.channel, discord.channel.DMChannel):
+        """
+        Create a team. This command can only be used in DMs.
+
+        :param ctx: The calling context
+        :param team_name: The name of the team.
+        :param player_name: The personal name of the team leader.
+        """
+        if ctx.channel.type is not ChannelType.private:
             await ctx.respond("This command can only be used in DMs.")
             return
 
@@ -88,7 +96,14 @@ class TeamCog(discord.Cog):
     # event that runs when the "join [team_uuid] [player_name]" command is sent
     @discord.application_command()
     async def join(self, ctx, uuid: str, *, player_name: str):
-        if not isinstance(ctx.channel, discord.channel.DMChannel):
+        """
+        Join a team. This command can only be used in DMs.
+
+        :param ctx: The calling context.
+        :param uuid: The unique identifier of the team. Ask your team leader for this.
+        :param player_name: The personal name of the player joining the team.
+        """
+        if ctx.channel.type is not ChannelType.private:
             await ctx.respond("This command can only be used in DMs.")
             return
 

@@ -20,8 +20,8 @@ class BiSEmbed(discord.Embed):
         self.add_field(name="Minor Substat Upgrade", value="Use this value if your BiS for the given slot is from "
                                                            "raid, and acquiring it provides you with a minor substat "
                                                            "improvement (e.g., Crit/Det crafted item, "
-                                                           "and Crit/DH raid item)", inline=False)
+                                                           "and Crit/DH raid item).", inline=False)
         self.add_field(name="Major Substat Upgrade", value="Use this value if your BiS for the given slot is from "
                                                            "raid, and acquiring it provides you with a major substat "
                                                            "improvement (e.g., Crit/SS crafted item, "
-                                                           "and Crit/DH raid item)", inline=False)
+                                                           "and Crit/DH raid item).", inline=False)

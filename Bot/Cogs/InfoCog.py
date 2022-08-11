@@ -10,4 +10,5 @@ class InfoCog(discord.Cog):
     # event that runs when the "info" command is sent
     @discord.application_command()
     async def info(self, ctx):
+        """Display an info embed in the channel this command was sent in."""
         await ctx.respond(embed=InfoEmbed())

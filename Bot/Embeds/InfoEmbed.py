@@ -16,7 +16,7 @@ class InfoEmbed(discord.Embed):
                                                      "predetermined priority.", inline=False)
         self.add_field(name="Joining a team", value="If you are given an access code by the team owner, you "
                                                     f"may join a team by DMing me with "
-                                                    "/join [team uuid] [player name]**. You will"
+                                                    "**/join [team uuid] [player name]**. You will"
                                                     " then be able to set up your BiS gear, as well as report on "
                                                     "item purchases you make outside of raid (i.e. through books).",
                        inline=False)
