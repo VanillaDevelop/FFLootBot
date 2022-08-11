@@ -21,25 +21,21 @@ from Bot.Views.ManagementView import ManagementView
 from Bot.Views.PlayerPurchaseView import PlayerPurchaseView
 from Bot.Views.PlayerView import PlayerView
 
-COMMAND_PREFIX = '!'
 BIS_TIMEOUT = 600
 PURCHASE_TIMEOUT = 180
 LOAD_CONFIG_FILE = False
 
 
-class DiscordBot:
-    def __init__(self, token: str):
+class DiscordBot(commands.Bot):
+    def __init__(self, **options):
         # take the discord auth token
-        self.token = token
-        # create the discord client with the given command prefix
-        self.client = commands.Bot(command_prefix=COMMAND_PREFIX)
+        super().__init__(**options)
         # manages teams
         self.team_manager = TeamManager()
 
         # event that runs when the bot is started
-        @self.client.event
         async def on_ready():
-            print(f'{self.client.user} ready!')
+            print(f'{self.user} ready!')
             atexit.register(self.on_disconnect)
 
             # if config file exists and bot is set to use stored information, load config file
@@ -50,105 +46,102 @@ class DiscordBot:
                 # load persistent views for each team and player that was stored
                 for team_id in self.team_manager.get_all_team_ids():
                     team = self.team_manager.get_team_by_uuid(team_id)
-                    self.client.add_view(ManagementView(team,
-                                                        self.__handle_loot_priority_click__,
-                                                        self.__assign_loot_callback__,
-                                                        self.__handle_disband_team__))
+                    self.add_view(ManagementView(team,
+                                                 self.__handle_loot_priority_click__,
+                                                 self.__assign_loot_callback__,
+                                                 self.__handle_disband_team__))
                     for player_id in team.get_all_member_ids():
                         player = team.get_member_by_author_id(player_id)
-                        self.client.add_view(PlayerView(player,
+                        self.add_view(PlayerView(player,
+                                                 self.__handle_role_change__, self.__bis_callback__,
+                                                 self.__purchase_callback__, self.__handle_leave_team__))
+
+    # event that runs when the "info" command is sent
+    @commands.slash_command(description="Sends an info message into this channel.")
+    async def info(self, ctx):
+        await ctx.respond(embed=InfoEmbed())
+
+    # event that runs when the "create [team_name] [player_name]" command is sent
+    @commands.slash_command()
+    async def create(self, ctx, team_name: str, *, player_name: str):
+        if not isinstance(ctx.channel, discord.channel.DMChannel):
+            await ctx.send("This command can only be used in DMs.")
+            return
+
+        if self.team_manager.get_team_by_leader(ctx.author.id):
+            await ctx.send("You already have an active team.", delete_after=5)
+            return
+
+        if not player_name:
+            await ctx.send("Please enter a player name.", delete_after=5)
+            return
+
+        if not team_name:
+            await ctx.send("Please enter a team name.", delete_after=5)
+            return
+
+        # create team and add player to team
+        team = self.team_manager.create_team(team_name, ctx.author.id)
+        player = team.add_member(ctx.author.id, player_name)
+
+        # add persistent views for the created team and player
+        self.add_view(ManagementView(team, self.__handle_loot_priority_click__,
+                                     self.__assign_loot_callback__,
+                                     self.__handle_disband_team__))
+        self.add_view(PlayerView(team.get_member_by_author_id(ctx.author.id),
+                                 self.__handle_role_change__, self.__bis_callback__,
+                                 self.__purchase_callback__, self.__handle_leave_team__))
+
+        # send the management view (leader only)
+        await ctx.send(embed=ManagementEmbed(team),
+                       view=ManagementView(team, self.__handle_loot_priority_click__,
+                                           self.__assign_loot_callback__,
+                                           self.__handle_disband_team__))
+
+        # send the player view (everyone)
+        member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
+                                        view=PlayerView(player,
                                                         self.__handle_role_change__, self.__bis_callback__,
                                                         self.__purchase_callback__, self.__handle_leave_team__))
 
-        # event that runs when the "info" command is sent
-        @self.client.command()
-        async def info(ctx):
-            await ctx.send(embed=InfoEmbed(COMMAND_PREFIX))
+        # link the member message id to the team
+        self.team_manager.map_message_id_to_team(ctx.author.id, member_message.id, team, player)
 
-        # event that runs when the "create [team_name] [player_name]" command is sent
-        @self.client.command()
-        async def create(ctx, team_name: str, *, player_name: str):
-            if not isinstance(ctx.channel, discord.channel.DMChannel):
-                await ctx.send("This command can only be used in DMs.")
-                return
+    # event that runs when the "join [team_uuid] [player_name]" command is sent
+    @commands.slash_command()
+    async def join(self, ctx, uuid: str, *, player_name: str):
+        if not isinstance(ctx.channel, discord.channel.DMChannel):
+            await ctx.send("This command can only be used in DMs.")
+            return
 
-            if self.team_manager.get_team_by_leader(ctx.author.id):
-                await ctx.send("You already have an active team.", delete_after=5)
-                return
+        if self.team_manager.get_team_by_uuid(uuid) is None:
+            await ctx.send("That team does not exist.", delete_after=5)
+            return
 
-            if not player_name:
-                await ctx.send("Please enter a player name.", delete_after=5)
-                return
+        team = self.team_manager.get_team_by_uuid(uuid)
+        if team.get_member_by_author_id(ctx.author.id):
+            await ctx.send("You are already part of this team.", delete_after=5)
+            return
 
-            if not team_name:
-                await ctx.send("Please enter a team name.", delete_after=5)
-                return
+        if not player_name:
+            await ctx.send("Please enter a player name.", delete_after=5)
+            return
 
-            # create team and add player to team
-            team = self.team_manager.create_team(team_name, ctx.author.id)
-            player = team.add_member(ctx.author.id, player_name)
-
-            # add persistent views for the created team and player
-            self.client.add_view(ManagementView(team, self.__handle_loot_priority_click__,
-                                                self.__assign_loot_callback__,
-                                                self.__handle_disband_team__))
-            self.client.add_view(PlayerView(team.get_member_by_author_id(ctx.author.id),
-                                            self.__handle_role_change__, self.__bis_callback__,
-                                            self.__purchase_callback__, self.__handle_leave_team__))
-
-            # send the management view (leader only)
-            await ctx.send(embed=ManagementEmbed(team, COMMAND_PREFIX),
-                           view=ManagementView(team, self.__handle_loot_priority_click__,
-                                               self.__assign_loot_callback__,
-                                               self.__handle_disband_team__))
-
-            # send the player view (everyone)
-            member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
-                                            view=PlayerView(player,
-                                                            self.__handle_role_change__, self.__bis_callback__,
-                                                            self.__purchase_callback__, self.__handle_leave_team__))
-
-            # link the member message id to the team
-            self.team_manager.map_message_id_to_team(ctx.author.id, member_message.id, team, player)
-
-        # event that runs when the "join [team_uuid] [player_name]" command is sent
-        @self.client.command()
-        async def join(ctx, uuid: str, *, player_name: str):
-            if not isinstance(ctx.channel, discord.channel.DMChannel):
-                await ctx.send("This command can only be used in DMs.")
-                return
-
-            if self.team_manager.get_team_by_uuid(uuid) is None:
-                await ctx.send("That team does not exist.", delete_after=5)
-                return
-
-            team = self.team_manager.get_team_by_uuid(uuid)
-            if team.get_member_by_author_id(ctx.author.id):
-                await ctx.send("You are already part of this team.", delete_after=5)
-                return
-
-            if not player_name:
-                await ctx.send("Please enter a player name.", delete_after=5)
-                return
-
-            # add player to the team
-            player = team.add_member(ctx.author.id, player_name)
-            # add persistent view for the player
-            self.client.add_view(PlayerView(player,
-                                            self.__handle_role_change__, self.__bis_callback__,
-                                            self.__purchase_callback__, self.__handle_leave_team__))
-            # send the player view
-            member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
-                                            view=PlayerView(player,
-                                                            self.__handle_role_change__, self.__bis_callback__,
-                                                            self.__purchase_callback__, self.__handle_leave_team__))
-            # link the member message id to the team
-            self.team_manager.map_message_id_to_team(ctx.author.id, member_message.id, team, player)
-            # update the player view of all players in the team
-            await self.update_all_member_embeds(team)
-
-        # run client
-        self.client.run(self.token)
+        # add player to the team
+        player = team.add_member(ctx.author.id, player_name)
+        # add persistent view for the player
+        self.add_view(PlayerView(player,
+                                 self.__handle_role_change__, self.__bis_callback__,
+                                 self.__purchase_callback__, self.__handle_leave_team__))
+        # send the player view
+        member_message = await ctx.send(embed=PlayerInfoEmbed(team, player),
+                                        view=PlayerView(player,
+                                                        self.__handle_role_change__, self.__bis_callback__,
+                                                        self.__purchase_callback__, self.__handle_leave_team__))
+        # link the member message id to the team
+        self.team_manager.map_message_id_to_team(ctx.author.id, member_message.id, team, player)
+        # update the player view of all players in the team
+        await self.update_all_member_embeds(team)
 
     # callback for when a player changes their role
     async def __handle_role_change__(self, interaction: discord.Interaction, role: str):
@@ -166,7 +159,7 @@ class DiscordBot:
             player = team.get_member_by_author_id(member)
             author = player.get_author_id()
             message_id = player.get_message_id()
-            channel = await self.client.fetch_user(author)
+            channel = await self.fetch_user(author)
             message = await channel.fetch_message(message_id)
             await message.edit(embed=PlayerInfoEmbed(team, player))
 
@@ -289,8 +282,8 @@ class DiscordBot:
             await interaction.response.send_message("You are already adding an item. Please use the existing "
                                                     "interface.", delete_after=5)
         elif (len(player.get_unowned_gear()) == 0
-                and player.get_remaining_twine_count() <= 0
-                and player.get_remaining_coating_count() <= 0):
+              and player.get_remaining_twine_count() <= 0
+              and player.get_remaining_coating_count() <= 0):
             await interaction.response.send_message("There is no gear for you to log. Set up your BiS first.",
                                                     delete_after=5)
         else:
@@ -350,7 +343,7 @@ class DiscordBot:
             # delete player view
             author = player.get_author_id()
             message_id = player.get_message_id()
-            channel = await self.client.fetch_user(author)
+            channel = await self.fetch_user(author)
             message = await channel.fetch_message(message_id)
             await message.delete()
         # delete leader index and message, then delete team

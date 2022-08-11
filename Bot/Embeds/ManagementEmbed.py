@@ -5,13 +5,13 @@ from Bot.Team import Team
 
 # embed for team management
 class ManagementEmbed(discord.Embed):
-    def __init__(self, team: Team, command_prefix: str):
+    def __init__(self, team: Team):
         super().__init__()
         self.title = "Team Management"
         self.set_author(name=f"Team {team.get_team_name()}")
         self.description = f"This is the control panel for team {team.get_team_name()}."
         self.add_field(name="Inviting Team Members", value=f"Team members may join the team by DMing the bot with\n"
-                                                           f"**{command_prefix}join {team.get_uuid()}** [Player Name]",
+                                                           f"**/join {team.get_uuid()} [Player Name]**",
                        inline=False)
         self.add_field(name="Settings", value="**Loot Priority**"
                                               "\n__DPS__\n"

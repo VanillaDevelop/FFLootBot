@@ -4,4 +4,7 @@ import os
 
 load_dotenv()
 
-bot = DiscordBot(os.getenv('BOT_TOKEN'))
+DEBUG_SERVERS = [283246352182411265]
+
+bot = DiscordBot(debug_guilds=DEBUG_SERVERS)
+bot.run(os.getenv('BOT_TOKEN'))
