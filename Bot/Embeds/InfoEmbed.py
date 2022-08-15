@@ -20,9 +20,9 @@ class InfoEmbed(discord.Embed):
                                                     " then be able to set up your BiS gear, as well as report on "
                                                     "item purchases you make outside of raid (i.e. through books).",
                        inline=False)
-        self.add_field(name="Loot distribution", value="When a team owner provides the log of a loot drop, "
-                                                       "the bot will determine who benefits most from the "
-                                                       "item drop, and will inform all members accordingly. "
+        self.add_field(name="Loot distribution", value="When a team owner assigns an item, "
+                                                       "the bot will determine who benefits most from the item drop,"
+                                                       " and will suggest a priority to the team leader accordingly. "
                                                        "The team owner may set different settings for the "
-                                                       "loot distribution, such as gear funnel, dps prioritization"
-                                                       ", or all equal.", inline=False)
+                                                       "loot distribution, such as DPS prioritization"
+                                                       " or equal distribution.", inline=False)

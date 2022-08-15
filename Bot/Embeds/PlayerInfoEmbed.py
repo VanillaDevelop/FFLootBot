@@ -13,8 +13,8 @@ class PlayerInfoEmbed(discord.Embed):
 
         teaminfo = "**Members**"
         for member in team.get_all_member_ids():
-            player = team.get_member_by_author_id(member)
-            teaminfo += f"\n{player.get_player_name()} ({str(player.get_player_role())})"
+            team_member = team.get_member_by_author_id(member)
+            teaminfo += f"\n{team_member.get_player_name()} ({str(team_member.get_player_role())})"
         teaminfo += "\n\n**Settings**"
         teaminfo += f"\nLoot priority rule: {str(team.get_loot_priority())}"
 

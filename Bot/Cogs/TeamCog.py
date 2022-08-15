@@ -22,7 +22,16 @@ PURCHASE_TIMEOUT = 180
 class TeamCog(discord.Cog):
     def __init__(self, bot, team_manager=None):
         self.bot = bot
-        self.team_manager = TeamManager() if team_manager is None else team_manager
+        if team_manager is None:
+            self.team_manager = TeamManager()
+        else:
+            self.set_team_manager(team_manager)
+
+    def get_team_manager(self) -> TeamManager:
+        return self.team_manager
+
+    def set_team_manager(self, team_manager: TeamManager):
+        self.team_manager = team_manager
 
         # load persistent views for each team and player that was stored
         for team_id in self.team_manager.get_all_team_ids():
@@ -36,9 +45,6 @@ class TeamCog(discord.Cog):
                 self.bot.add_view(PlayerView(player,
                                              self.__handle_role_change__, self.__bis_callback__,
                                              self.__purchase_callback__, self.__handle_leave_team__))
-
-    def get_team_manager(self) -> TeamManager:
-        return self.team_manager
 
     # event that runs when the "create [team_name] [player_name]" command is sent
     @discord.application_command()
@@ -79,16 +85,19 @@ class TeamCog(discord.Cog):
                                      self.__purchase_callback__, self.__handle_leave_team__))
 
         # send the management view (leader only)
-        await ctx.respond(embed=ManagementEmbed(team),
-                          view=ManagementView(team, self.__handle_loot_priority_click__,
-                                              self.__assign_loot_callback__,
-                                              self.__handle_disband_team__))
+        await ctx.channel.send(embed=ManagementEmbed(team),
+                               view=ManagementView(team, self.__handle_loot_priority_click__,
+                                                   self.__assign_loot_callback__,
+                                                   self.__handle_disband_team__))
 
         # send the player view (everyone)
-        member_message = await ctx.respond(embed=PlayerInfoEmbed(team, player),
-                                           view=PlayerView(player,
-                                                           self.__handle_role_change__, self.__bis_callback__,
-                                                           self.__purchase_callback__, self.__handle_leave_team__))
+        member_message = await ctx.channel.send(embed=PlayerInfoEmbed(team, player),
+                                                view=PlayerView(player,
+                                                                self.__handle_role_change__, self.__bis_callback__,
+                                                                self.__purchase_callback__,
+                                                                self.__handle_leave_team__))
+
+        await ctx.respond("Team created.", delete_after=5)
 
         # link the member message id to the team
         self.team_manager.map_message_id_to_team(ctx.author.id, member_message.id, team, player)
@@ -127,14 +136,17 @@ class TeamCog(discord.Cog):
                                      self.__handle_role_change__, self.__bis_callback__,
                                      self.__purchase_callback__, self.__handle_leave_team__))
         # send the player view
-        member_message = await ctx.respond(embed=PlayerInfoEmbed(team, player),
-                                           view=PlayerView(player,
-                                                           self.__handle_role_change__, self.__bis_callback__,
-                                                           self.__purchase_callback__, self.__handle_leave_team__))
+        member_message = await ctx.channel.send(embed=PlayerInfoEmbed(team, player),
+                                                view=PlayerView(player,
+                                                                self.__handle_role_change__, self.__bis_callback__,
+                                                                self.__purchase_callback__,
+                                                                self.__handle_leave_team__))
         # link the member message id to the team
         self.team_manager.map_message_id_to_team(ctx.author.id, member_message.id, team, player)
         # update the player view of all players in the team
         await self.update_all_member_embeds(team)
+
+        await ctx.respond("You have joined the team.", delete_after=5)
 
     # callback for when a player changes their role
     async def __handle_role_change__(self, interaction: discord.Interaction, role: str):
@@ -148,8 +160,8 @@ class TeamCog(discord.Cog):
 
     # updates all player embeds for a given team
     async def update_all_member_embeds(self, team: Team):
-        for member in team.get_all_member_ids():
-            player = team.get_member_by_author_id(member)
+        players = [team.get_member_by_author_id(member_id) for member_id in team.get_all_member_ids()]
+        for player in players:
             author = player.get_author_id()
             message_id = player.get_message_id()
             channel = await self.bot.fetch_user(author)

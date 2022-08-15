@@ -10,7 +10,7 @@ class LootPriority(Enum):
     NONE = 3
 
     def __str__(self):
-        return self.name.capitalize()
+        return self.name.capitalize() if self != LootPriority.DPS else "DPS"
 
 
 class Team:
@@ -83,7 +83,7 @@ class Team:
                 [member for member in self.__members.values() if member.needs_item(Item(gear_type))]))
             if self.__loot_priority == LootPriority.DPS:
                 # dps priority sorting: sort by role, then by upgrade level (ignore pity)
-                plist.sort(key=lambda triple: (triple[0].get_player_role(), -triple[1]))
+                plist.sort(key=lambda triple: (triple[0].get_player_role().value, -triple[1]))
             elif self.__loot_priority == LootPriority.EQUAL:
                 # equal loot sorting: sort by pity, then by upgrade level (ignore role)
                 plist.sort(key=lambda triple: (-triple[2], -triple[1]))
@@ -102,7 +102,7 @@ class Team:
                  if member.get_remaining_coating_count() > 0]))
         if self.__loot_priority == LootPriority.DPS:
             # dps priority sorting: sort by role, then by required item count
-            plist.sort(key=lambda triple: (triple[0].get_player_role(), -triple[1]))
+            plist.sort(key=lambda triple: (triple[0].get_player_role().value, -triple[1]))
         else:
             # equal loot sorting: sort by required item count only
             plist.sort(key=lambda triple: -triple[1])

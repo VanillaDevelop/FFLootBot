@@ -20,6 +20,6 @@ class ManagementEmbed(discord.Embed):
                                               "\n__Equal__\n"
                                               "The bot will suggest giving loot to players who have given up "
                                               "the most loot so far, regardless of role."
-                                              "\n**None**\n"
+                                              "\n__None__\n"
                                               "The bot will not suggest any loot distribution.",
                        inline=False)
